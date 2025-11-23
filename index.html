@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Safelife - V20 Final</title>
+    <title>Safelife - V21 Route System</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,6 +48,8 @@
         .order-card.done { border-right-color: #aaa; opacity: 0.8; background: #f9f9f9; }
         .order-info { font-size: 11px; color: #555; margin-top: 5px; }
         .client-name { color: var(--main); font-weight: bold; background: #eef2f5; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+        .location-tag { font-size: 10px; color: blue; cursor: pointer; text-decoration: underline; margin-right: 5px; }
+        
         .deliver-btn { background: var(--green); color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; cursor: pointer; margin-top: 5px; display: inline-block; }
         
         .tabs-container { display: flex; padding: 10px; gap: 10px; background: #fff; border-bottom: 1px solid #eee; }
@@ -72,6 +74,7 @@
         .btn-red { background: #e74c3c; color: white; border:none; border-radius:5px; padding:5px 10px; }
         .btn-green { background: var(--green); color: white; border:none; border-radius:5px; padding:8px; }
         .btn-ghost { background: #eee; color: #333; border:none; border-radius:5px; padding:5px; }
+        .btn-map { background: #4285F4; color: white; border:none; border-radius:10px; padding:10px 20px; margin: 5px; }
         input, select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; width: 100%; margin-bottom: 5px; font-family: 'Cairo'; }
 
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 8px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 999; border-top: 1px solid #eee; }
@@ -121,6 +124,7 @@
             <div class="client-section">
                 <label style="font-size:12px; color:#777;">اسم العميل / الصيدلية:</label>
                 <input type="text" id="current-client" class="client-input" placeholder="اكتب اسم العميل هنا...">
+                <small style="color:blue; font-size:11px;">📍 سيتم حفظ موقعك الحالي تلقائياً عند إضافة الطلب</small>
             </div>
             <div id="admin-tools" class="admin-panel" style="display:none; border-color:var(--accent);">
                 <h4 style="margin:0 0 10px;">+ إدارة المنتجات</h4>
@@ -164,9 +168,14 @@
 
                 <label style="font-weight:bold; font-size:13px;">حدد المناطق للتجميع:</label>
                 <div id="report-regions-check" class="regions-grid"></div>
-                <div style="text-align:center; margin-top:15px;">
-                    <button onclick="renderReport()" style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:10px;">عرض التقرير</button>
-                    <button onclick="downloadPDF()" style="background:#e74c3c; color:white; border:none; padding:10px 20px; border-radius:10px;">تحميل PDF</button>
+                <div style="text-align:center; margin-top:15px; display:flex; flex-direction:column; gap:5px;">
+                    <!-- Map Button -->
+                    <button onclick="openRouteMap()" class="btn-map" id="btn-route-map" style="display:none;">🗺️ رسم خط سير التوزيع (Google Maps)</button>
+                    
+                    <div style="display:flex; gap:10px; justify-content:center;">
+                        <button onclick="renderReport()" style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:10px; flex:1;">عرض التقرير</button>
+                        <button onclick="downloadPDF()" style="background:#e74c3c; color:white; border:none; padding:10px 20px; border-radius:10px; flex:1;">تحميل PDF</button>
+                    </div>
                 </div>
             </div>
             <div id="print-area">
@@ -263,7 +272,20 @@
         let globalSettings = { cats:[], lines:[], regs:[], logo:"" };
         let activeCat='all', activeLine='all';
         let orderTab = 'active';
+        let currentReportOrders = []; // To store orders currently in report for map
         const DEFAULT_IMG = "https://cdn-icons-png.flaticon.com/512/2965/2965363.png";
+
+        // --- Helper: Get Location ---
+        function getCurrentLocation() {
+            return new Promise((resolve) => {
+                if (!navigator.geolocation) { console.warn("Geo not supported"); resolve(null); return; }
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                    (err) => { console.warn("Geo error:", err); resolve(null); },
+                    { enableHighAccuracy: true, timeout: 5000 }
+                );
+            });
+        }
 
         // --- Event Listeners ---
         document.getElementById('btnLogin').addEventListener('click', login);
@@ -381,6 +403,7 @@
             });
         }
 
+        // Updated mkOrd with Location Capture
         window.mkOrd = async function(pid) {
             let p = globalProducts.find(x=>x.id===pid);
             let qtyInput = document.getElementById(`qty-${pid}`);
@@ -391,6 +414,10 @@
             if(!qty || qty < 1) return alert("الكمية غير صحيحة");
             
             if(confirm(`إضافة ${p.name} (العدد: ${qty}) للعميل: ${client}؟`)) {
+                showLoader(true);
+                // Get Location
+                let loc = await getCurrentLocation();
+                
                 await addDoc(collection(db,"orders"), {
                     product: p.name, line: p.sLine, price: p.price, 
                     qty: qty, total: (p.price * qty),
@@ -398,8 +425,10 @@
                     user: currentUser.user, region: currentUser.region, 
                     date: new Date().toLocaleDateString(),
                     time: new Date().toLocaleTimeString(),
-                    status: 'pending'
+                    status: 'pending',
+                    geo: loc // Save location
                 });
+                showLoader(false);
                 alert("تمت الإضافة");
             }
         }
@@ -472,6 +501,7 @@
                 }
 
                 let statusClass = (o.status === 'done') ? 'done' : '';
+                let mapIcon = o.geo ? `<span onclick="window.open('https://maps.google.com/?q=${o.geo.lat},${o.geo.lng}','_blank')" class="location-tag">📍 موقع</span>` : '';
 
                 d.innerHTML += `
                 <div class="order-card ${statusClass}">
@@ -480,7 +510,7 @@
                         <div style="font-weight:bold; color:var(--green);">${o.total || o.price} ج.م</div>
                     </div>
                     <div class="order-info">
-                        <span class="client-name">العميل: ${o.client || "غير محدد"}</span><br>
+                        <span class="client-name">العميل: ${o.client || "غير محدد"}</span> ${mapIcon}<br>
                         👤 ${o.user} | 🔢 عدد: ${o.qty || 1} | 📍 ${o.region} <br>
                         📅 ${o.date}
                     </div>
@@ -506,7 +536,7 @@
             }
         }
 
-        // --- Reports (Updated with Grouping) ---
+        // --- Reports (Updated with Grouping & Route Map) ---
         window.renderReport = function() {
             let tb = document.getElementById("r-body"); 
             let thead = document.getElementById("r-head");
@@ -524,11 +554,15 @@
             if(selectedRegions.length > 0) l = l.filter(o => selectedRegions.includes(o.region));
             else if (!currentUser.isAdmin) l = l.filter(o => o.region === currentUser.region);
 
+            // Store for map
+            currentReportOrders = l;
+            document.getElementById("btn-route-map").style.display = (l.length > 0) ? "inline-block" : "none";
+
             let grandTotal = 0;
             l.sort((a,b) => new Date(b.date) - new Date(a.date));
 
             if (isGrouped) {
-                // --- وضع التجميع ---
+                // Grouped Mode
                 thead.innerHTML = `<tr>
                     <th style="background:#ddd">العميل</th>
                     <th style="background:#ddd">المنطقة</th>
@@ -577,7 +611,7 @@
                 }
 
             } else {
-                // --- الوضع العادي ---
+                // Detailed Mode
                 thead.innerHTML = `<tr><th>العميل</th><th>المنتج</th><th>العدد</th><th>السعر</th><th>الإجمالي</th></tr>`;
                 tfootLabel.colSpan = 4;
 
@@ -593,6 +627,36 @@
             document.getElementById("r-user").innerText = currentUser.user;
             document.getElementById("r-date").innerText = new Date().toLocaleDateString();
             document.getElementById("print-area").style.display = "block";
+        }
+
+        // --- Route Map Logic ---
+        window.openRouteMap = function() {
+            // Filter orders that have geolocation
+            let locs = currentReportOrders.filter(o => o.geo && o.geo.lat).map(o => `${o.geo.lat},${o.geo.lng}`);
+            
+            if(locs.length === 0) {
+                alert("لا توجد طلبات محفوظة بالموقع الجغرافي في هذا التقرير.");
+                return;
+            }
+
+            // Remove duplicates
+            let uniqueLocs = [...new Set(locs)];
+            
+            // Limit to avoid URL overflow (Google allows ~20 waypoints roughly)
+            if(uniqueLocs.length > 20) {
+                if(!confirm(`العدد كبير (${uniqueLocs.length}). سيتم رسم خط سير لأول 20 عميل فقط. متابعة؟`)) return;
+                uniqueLocs = uniqueLocs.slice(0, 20);
+            }
+
+            // Construct URL: origin=Current, destination=Last, waypoints=AllOthers
+            let destination = uniqueLocs.pop(); // Remove last one for dest
+            let waypoints = uniqueLocs.join('|');
+            
+            let url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+            if(waypoints) url += `&waypoints=${waypoints}`;
+            
+            // Try to get current start location
+            window.open(url, '_blank');
         }
 
         window.downloadPDF = function() { window.renderReport(); html2pdf().from(document.getElementById("print-area")).save("Report.pdf"); }
@@ -717,7 +781,6 @@
         window.logout=function(){location.reload();}
         function showLoader(s){document.getElementById("loader").style.display=s?"flex":"none";}
 
-        // Start setting listener immediately
         listenToSettings();
     </script>
 </body>
