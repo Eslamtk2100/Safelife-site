@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Safelife - Rescue</title>
+    <title>Safelife - V20 Final</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,12 +15,18 @@
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; font-family: 'Cairo', sans-serif; background-color: var(--bg); padding-bottom: 80px; color: #333; }
 
+        /* Login Screen */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
-        .login-box { background: rgba(255, 255, 255, 0.95); padding: 40px 30px; border-radius: 20px; width: 100%; max-width: 380px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        .login-box { background: rgba(255, 255, 255, 0.95); padding: 40px 30px; border-radius: 20px; width: 100%; max-width: 380px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); position: relative; }
 
+        /* Loader */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 100000; display: none; flex-direction: column; justify-content: center; align-items: center; }
+
+        /* App Structure */
         #main-app { display: none; }
         header { background: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
         
+        /* Products Grid */
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; }
         @media (min-width: 600px) { .grid-container { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
         .card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; flex-direction: column; position: relative; }
@@ -30,19 +36,20 @@
         
         .prod-title { font-weight: bold; color: var(--main); font-size: 13px; margin-bottom: 5px; line-height: 1.2; }
         .line-badge { position: absolute; top: 5px; right: 5px; background: var(--accent); color: #000; font-size: 10px; padding: 2px 8px; border-radius: 8px; font-weight: bold; }
+        .cat-badge { font-size: 10px; background: #eee; padding: 2px 6px; border-radius: 4px; color: #555; display: inline-block; width: fit-content; }
         
         .qty-row { display: flex; align-items: center; margin-top: auto; gap: 5px; background: #f9f9f9; padding: 5px; border-radius: 8px; }
         .qty-input { width: 40px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 5px; font-weight: bold; height: 35px; }
         .add-btn { flex: 1; background: var(--main); color: white; border: none; border-radius: 5px; height: 35px; font-size: 12px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
         .add-btn:active { transform: scale(0.95); background: var(--green); }
 
+        /* Orders & Reports */
         .order-card { background: white; padding: 12px; border-radius: 10px; margin-bottom: 8px; border-right: 4px solid var(--green); box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; }
         .order-card.done { border-right-color: #aaa; opacity: 0.8; background: #f9f9f9; }
         .order-info { font-size: 11px; color: #555; margin-top: 5px; }
         .client-name { color: var(--main); font-weight: bold; background: #eef2f5; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
-        .order-actions { margin-top: 8px; display: flex; gap: 5px; justify-content: flex-end; }
         .deliver-btn { background: var(--green); color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; cursor: pointer; margin-top: 5px; display: inline-block; }
-
+        
         .tabs-container { display: flex; padding: 10px; gap: 10px; background: #fff; border-bottom: 1px solid #eee; }
         .tab-btn { flex: 1; padding: 8px; border: 1px solid var(--main); border-radius: 20px; background: white; color: var(--main); font-weight: bold; font-size: 13px; }
         .tab-btn.active { background: var(--main); color: white; }
@@ -51,6 +58,7 @@
         .filter-chip { white-space: nowrap; background: white; padding: 5px 12px; border-radius: 15px; border: 1px solid #ddd; color: #666; font-size: 12px; cursor: pointer; }
         .filter-chip.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: bold; }
 
+        /* Admin */
         .admin-panel { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee; }
         .edit-mode { border: 2px solid var(--accent); background: #fffcf5; }
         .check-group { text-align: right; max-height: 120px; overflow-y: auto; border: 1px solid #eee; padding: 8px; margin-bottom: 8px; border-radius: 5px; background: #fff; }
@@ -70,7 +78,6 @@
         .bottom-nav button { background: transparent; border:none; color: #aaa; display: flex; flex-direction: column; align-items: center; font-size: 10px; font-family: 'Cairo'; }
         .bottom-nav button.active { color: var(--main); font-weight: bold; }
 
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 100000; display: none; flex-direction: column; justify-content: center; align-items: center; }
         .page-section { display: none; padding: 10px; padding-bottom: 80px; }
         .active-page { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -83,23 +90,26 @@
 </head>
 <body>
 
-    <div id="loader"><h3>جاري الاتصال...</h3></div>
+    <div id="loader">
+        <div style="font-size:30px; margin-bottom:10px;">↻</div>
+        <h3 style="color:var(--main);">جاري الاتصال...</h3>
+    </div>
 
-    <!-- 1. Login -->
+    <!-- 1. Login Screen -->
     <div id="login-screen">
         <div class="login-box">
             <img id="app-logo-login" src="https://i.ibb.co/QnHk7z2/Safe-Life-Logo.png" style="width: 180px; margin-bottom: 20px;">
             <h3 style="color:var(--main);">بوابة الموظفين</h3>
             <input type="text" id="l-user" placeholder="اسم المستخدم">
             <input type="password" id="l-pass" placeholder="كلمة المرور">
-            <button onclick="login()" style="width:100%; padding:12px; background:var(--main); color:white; border:none; border-radius:10px; margin-top:10px;">دخول</button>
-            <button onclick="visitorLogin()" style="width:100%; padding:12px; background:transparent; border:1px solid #ccc; border-radius:10px; margin-top:10px; color:var(--main);">دخول زائر</button>
+            <button id="btnLogin" style="width:100%; padding:12px; background:var(--main); color:white; border:none; border-radius:10px; margin-top:10px;">دخول</button>
+            <button id="btnGuest" style="width:100%; padding:12px; background:transparent; border:1px solid #ccc; border-radius:10px; margin-top:10px; color:var(--main);">دخول زائر</button>
             
             <p id="error-msg" style="color:#e74c3c; display:none; margin-top:10px;">بيانات خاطئة</p>
 
-            <!-- زر الإنقاذ -->
+            <!-- زر الإنقاذ (معرف بـ ID لضمان العمل) -->
             <div style="margin-top:30px; border-top:1px solid #eee; padding-top:10px;">
-                <button onclick="fixAdmin()" style="background:#eee; color:#555; font-size:11px; padding:8px;">⚠️ تهيئة النظام (اضغط لإصلاح الدخول)</button>
+                <button id="btn-rescue" style="background:#eee; color:#333; font-size:11px; padding:8px; width:100%; cursor:pointer;">⚠️ تهيئة النظام (اضغط هنا لإصلاح الدخول)</button>
             </div>
         </div>
     </div>
@@ -109,7 +119,7 @@
         <header>
             <img id="app-logo-header" src="https://i.ibb.co/QnHk7z2/Safe-Life-Logo.png" style="height:35px;">
             <span id="head-user" style="font-size:12px; font-weight:bold;"></span>
-            <button class="btn-red" onclick="logout()">خروج</button>
+            <button class="btn-red" id="btnLogout">خروج</button>
         </header>
 
         <!-- Products -->
@@ -118,7 +128,6 @@
                 <label style="font-size:12px; color:#777;">اسم العميل / الصيدلية:</label>
                 <input type="text" id="current-client" class="client-input" placeholder="اكتب اسم العميل هنا...">
             </div>
-
             <div id="admin-tools" class="admin-panel" style="display:none; border-color:var(--accent);">
                 <h4 style="margin:0 0 10px;">+ إدارة المنتجات</h4>
                 <input type="hidden" id="edit-id">
@@ -134,7 +143,6 @@
                     <button class="btn-ghost" style="flex:1; display:none;" onclick="cancelEditProd()" id="btn-cancel-prod">إلغاء</button>
                 </div>
             </div>
-
             <div class="filter-bar" id="line-filters" style="margin-top:5px;"></div>
             <div id="products-container" class="grid-container"></div>
         </div>
@@ -176,7 +184,6 @@
         <!-- Admin -->
         <div id="page-admin" class="page-section">
             <h3>⚙️ الإعدادات</h3>
-            
             <div class="admin-panel">
                 <h4>شعار النظام</h4>
                 <div style="display:flex; gap:5px;">
@@ -184,7 +191,6 @@
                     <button class="btn-green" onclick="saveLogo()">حفظ</button>
                 </div>
             </div>
-
             <div class="admin-panel">
                 <h4>القوائم</h4>
                 <div style="display:flex; gap:5px;">
@@ -194,7 +200,6 @@
                 </div>
                 <div id="sys-lists-container" style="margin-top:5px; font-size:12px;"></div>
             </div>
-
             <div class="admin-panel" id="user-form-panel">
                 <h4 id="user-form-title">إضافة / تعديل مستخدم</h4>
                 <input type="hidden" id="edit-user-id">
@@ -208,7 +213,7 @@
                     <label style="display:block;"><input type="checkbox" id="perm-admin"> <b>أدمن كامل</b></label>
                     <label style="display:block;"><input type="checkbox" id="perm-price"> <b>تعديل المنتجات</b></label>
                     <label style="display:block;"><input type="checkbox" id="perm-report"> <b>صلاحية التقارير</b></label>
-                    <label style="display:block; color:var(--green);"><input type="checkbox" id="perm-deliver"> <b>مندوب توزيع</b></label>
+                    <label style="display:block;"><input type="checkbox" id="perm-deliver"> <b>مندوب توزيع</b></label>
                     <label style="display:block;"><input type="checkbox" id="perm-archive"> <b>مشاهدة الأرشيف</b></label>
                     <hr>
                     <label style="display:block; color:var(--sec); font-weight:bold;"><input type="checkbox" id="perm-linemanager" onchange="toggleLineMgr()"> 👔 مدير لاين (إشراف)</label>
@@ -222,7 +227,6 @@
                     <button class="btn-ghost" style="flex:1; display:none;" onclick="cancelEditUser()" id="btn-cancel-user">إلغاء</button>
                 </div>
             </div>
-
             <h4>المستخدمين الحاليين</h4>
             <div id="users-list"></div>
         </div>
@@ -235,12 +239,12 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // --- بياناتك الخاصة (تعمل فوراً) ---
         const firebaseConfig = {
             apiKey: "AIzaSyCS-YWHs-MNaEVzh4G5VEGp_OZKYano1lE",
             authDomain: "safelife-db.firebaseapp.com",
@@ -260,16 +264,18 @@
         let orderTab = 'active';
         const DEFAULT_IMG = "https://cdn-icons-png.flaticon.com/512/2965/2965363.png";
 
-        // --- Fix Admin ---
-        window.fixAdmin = async function() {
-            if(!confirm("إعادة تهيئة الأدمن؟")) return;
+        // --- Emergency Fix Function ---
+        window.fixSystem = async function() {
+            if(!confirm("سيتم تهيئة النظام وإنشاء حساب الأدمن (admin / 1234). هل أنت متأكد؟")) return;
             showLoader(true);
             try {
+                // Create Admin
                 await addDoc(collection(db,"users"), { 
                     user:"admin", pass:"1234", region:"all", lines:["all"], 
-                    isAdmin:true, canPrice:true, canReport:true, canDeliver:true, canArchive:true 
+                    isAdmin:true, canPrice:true, canReport:true, canDeliver:true, canArchive:true, job:"System Admin" 
                 });
                 
+                // Default Settings
                 await setDoc(doc(db,"settings","config"), {
                     cats: ["Pharma"],
                     lines: ["Line 1", "Line 2", "Line 3", "Line 4", "Line 5", "Line 6"],
@@ -277,14 +283,16 @@
                     logo: "https://i.ibb.co/QnHk7z2/Safe-Life-Logo.png"
                 }, { merge: true });
 
-                alert("تم! ادخل الآن بـ admin/1234");
-            } catch(e) { alert("Error: "+e.message); }
+                alert("تم الإصلاح بنجاح! يمكنك الدخول الآن بـ admin و 1234");
+            } catch(e) { alert("خطأ: " + e.message); }
             showLoader(false);
         }
 
-        // --- Auth ---
+        // --- Event Listeners ---
         document.getElementById('btnLogin').addEventListener('click', login);
-        document.getElementById('btnGuest').addEventListener('click', ()=>startApp({user:"زائر", region:"none", lines:["all"], isAdmin:false, canReport:false}));
+        document.getElementById('btnGuest').addEventListener('click', () => startApp({user:"زائر", region:"none", lines:["all"], isAdmin:false, canReport:false}));
+        document.getElementById('btnLogout').addEventListener('click', () => location.reload());
+        document.getElementById('btn-rescue').addEventListener('click', window.fixSystem);
 
         async function login() {
             let u = document.getElementById("l-user").value;
@@ -300,7 +308,7 @@
                     document.getElementById("error-msg").style.display="block";
                     showLoader(false);
                 }
-            } catch(e) { alert("خطأ: " + e.message); showLoader(false); }
+            } catch(e) { alert("خطأ: "+e.message); showLoader(false); }
         }
 
         function startApp(user) {
@@ -326,7 +334,7 @@
             showLoader(false);
         }
 
-        // Listeners
+        // --- Listeners ---
         function listenToSettings(){ onSnapshot(doc(db,"settings","config"), d=>{ if(d.exists()){ globalSettings=d.data(); updateUI(); } }); }
         function listenToProducts(){ onSnapshot(collection(db,"products"), s=>{ globalProducts=[]; s.forEach(d=>globalProducts.push({...d.data(),id:d.id})); renderProducts(); }); }
         function listenToOrders(){ onSnapshot(collection(db,"orders"), s=>{ globalOrders=[]; s.forEach(d=>globalOrders.push({...d.data(),id:d.id})); renderOrders(); }); }
@@ -645,6 +653,7 @@
             uL.innerHTML=`<label><input type="checkbox" value="all"> كل اللاينات</label><br>`;
             (globalSettings.lines||[]).forEach(l=>uL.innerHTML+=`<label style="margin-left:10px"><input type="checkbox" value="${l}"> ${l}</label>`);
 
+            // مناطق مدير اللاين
             let mgrR=document.getElementById("u-mgr-regions");
             mgrR.innerHTML="";
             (globalSettings.regs||[]).forEach(r=>mgrR.innerHTML+=`<label style="margin-left:10px"><input type="checkbox" value="${r}"> ${r}</label>`);
