@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Safelife - V21 Route System</title>
+    <title>Safelife - V23 Full System</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -65,8 +65,11 @@
         .edit-mode { border: 2px solid var(--accent); background: #fffcf5; }
         .check-group { text-align: right; max-height: 120px; overflow-y: auto; border: 1px solid #eee; padding: 8px; margin-bottom: 8px; border-radius: 5px; background: #fff; }
         .user-card { background: white; padding: 10px; border-radius: 8px; margin-bottom: 5px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Client Section */
         .client-section { background: white; padding: 10px; border-radius: 10px; margin: 10px; border: 2px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .client-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: 'Cairo'; font-weight: bold; }
+        .client-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: 'Cairo'; font-weight: bold; margin-bottom: 5px; }
+        
         .regions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-top: 5px; }
 
         /* General */
@@ -74,8 +77,8 @@
         .btn-red { background: #e74c3c; color: white; border:none; border-radius:5px; padding:5px 10px; }
         .btn-green { background: var(--green); color: white; border:none; border-radius:5px; padding:8px; }
         .btn-ghost { background: #eee; color: #333; border:none; border-radius:5px; padding:5px; }
-        .btn-map { background: #4285F4; color: white; border:none; border-radius:10px; padding:10px 20px; margin: 5px; }
-        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; width: 100%; margin-bottom: 5px; font-family: 'Cairo'; }
+        .btn-map { background: #4285F4; color: white; border:none; border-radius:10px; padding:10px 20px; margin: 5px; width: 100%; }
+        input, select, textarea { padding: 10px; border: 1px solid #ddd; border-radius: 8px; width: 100%; margin-bottom: 5px; font-family: 'Cairo'; }
 
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 8px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 999; border-top: 1px solid #eee; }
         .bottom-nav button { background: transparent; border:none; color: #aaa; display: flex; flex-direction: column; align-items: center; font-size: 10px; font-family: 'Cairo'; }
@@ -122,10 +125,14 @@
         <!-- Products -->
         <div id="page-products" class="page-section active-page">
             <div class="client-section">
-                <label style="font-size:12px; color:#777;">اسم العميل / الصيدلية:</label>
-                <input type="text" id="current-client" class="client-input" placeholder="اكتب اسم العميل هنا...">
-                <small style="color:blue; font-size:11px;">📍 سيتم حفظ موقعك الحالي تلقائياً عند إضافة الطلب</small>
+                <label style="font-size:12px; color:#777;">بيانات العميل:</label>
+                <input type="text" id="current-client" class="client-input" placeholder="اسم العميل / الصيدلية *">
+                <input type="text" id="manual-location" class="client-input" placeholder="وصف العنوان (مثلاً: بجوار المسجد)...">
+                <textarea id="order-notes" class="client-input" rows="1" placeholder="ملاحظات هامة (مثلاً: الاستلام بعد الظهر)..."></textarea>
+                
+                <small style="color:blue; font-size:10px;">📍 سيتم أيضاً حفظ إحداثيات GPS تلقائياً.</small>
             </div>
+
             <div id="admin-tools" class="admin-panel" style="display:none; border-color:var(--accent);">
                 <h4 style="margin:0 0 10px;">+ إدارة المنتجات</h4>
                 <input type="hidden" id="edit-id">
@@ -158,7 +165,6 @@
         <div id="page-reports" class="page-section">
             <h3>📊 تقارير التوزيع</h3>
             <div class="admin-panel">
-                <!-- Grouping Option -->
                 <div style="margin-bottom:10px; padding:10px; background:#e8f5e9; border-radius:5px; border:1px solid #c8e6c9;">
                     <label style="font-weight:bold; color:var(--main); cursor:pointer;">
                         <input type="checkbox" id="chk-group-client" onchange="renderReport()"> 
@@ -168,8 +174,8 @@
 
                 <label style="font-weight:bold; font-size:13px;">حدد المناطق للتجميع:</label>
                 <div id="report-regions-check" class="regions-grid"></div>
-                <div style="text-align:center; margin-top:15px; display:flex; flex-direction:column; gap:5px;">
-                    <!-- Map Button -->
+                
+                <div style="text-align:center; margin-top:15px; display:flex; flex-direction:column; gap:8px;">
                     <button onclick="openRouteMap()" class="btn-map" id="btn-route-map" style="display:none;">🗺️ رسم خط سير التوزيع (Google Maps)</button>
                     
                     <div style="display:flex; gap:10px; justify-content:center;">
@@ -272,10 +278,9 @@
         let globalSettings = { cats:[], lines:[], regs:[], logo:"" };
         let activeCat='all', activeLine='all';
         let orderTab = 'active';
-        let currentReportOrders = []; // To store orders currently in report for map
+        let currentReportOrders = [];
         const DEFAULT_IMG = "https://cdn-icons-png.flaticon.com/512/2965/2965363.png";
 
-        // --- Helper: Get Location ---
         function getCurrentLocation() {
             return new Promise((resolve) => {
                 if (!navigator.geolocation) { console.warn("Geo not supported"); resolve(null); return; }
@@ -287,7 +292,6 @@
             });
         }
 
-        // --- Event Listeners ---
         document.getElementById('btnLogin').addEventListener('click', login);
         document.getElementById('btnGuest').addEventListener('click', () => startApp({user:"زائر", region:"none", lines:["all"], isAdmin:false, canReport:false}));
         document.getElementById('btnLogout').addEventListener('click', () => location.reload());
@@ -332,7 +336,6 @@
             showLoader(false);
         }
 
-        // --- Listeners ---
         function listenToSettings(){ onSnapshot(doc(db,"settings","config"), d=>{ if(d.exists()){ globalSettings=d.data(); updateUI(); } }); }
         function listenToProducts(){ onSnapshot(collection(db,"products"), s=>{ globalProducts=[]; s.forEach(d=>globalProducts.push({...d.data(),id:d.id})); renderProducts(); }); }
         function listenToOrders(){ onSnapshot(collection(db,"orders"), s=>{ globalOrders=[]; s.forEach(d=>globalOrders.push({...d.data(),id:d.id})); renderOrders(); }); }
@@ -403,30 +406,33 @@
             });
         }
 
-        // Updated mkOrd with Location Capture
         window.mkOrd = async function(pid) {
             let p = globalProducts.find(x=>x.id===pid);
             let qtyInput = document.getElementById(`qty-${pid}`);
             let qty = qtyInput ? qtyInput.value : 1;
+            
             let client = document.getElementById("current-client").value;
+            let manualLoc = document.getElementById("manual-location").value;
+            let notes = document.getElementById("order-notes").value;
 
             if(!client || client.trim() === "") return alert("⚠️ اكتب اسم العميل أولاً!");
             if(!qty || qty < 1) return alert("الكمية غير صحيحة");
             
             if(confirm(`إضافة ${p.name} (العدد: ${qty}) للعميل: ${client}؟`)) {
                 showLoader(true);
-                // Get Location
                 let loc = await getCurrentLocation();
                 
                 await addDoc(collection(db,"orders"), {
                     product: p.name, line: p.sLine, price: p.price, 
                     qty: qty, total: (p.price * qty),
                     client: client,
+                    manualLocation: manualLoc, 
+                    notes: notes, 
                     user: currentUser.user, region: currentUser.region, 
                     date: new Date().toLocaleDateString(),
                     time: new Date().toLocaleTimeString(),
                     status: 'pending',
-                    geo: loc // Save location
+                    geo: loc
                 });
                 showLoader(false);
                 alert("تمت الإضافة");
@@ -501,7 +507,10 @@
                 }
 
                 let statusClass = (o.status === 'done') ? 'done' : '';
-                let mapIcon = o.geo ? `<span onclick="window.open('https://maps.google.com/?q=${o.geo.lat},${o.geo.lng}','_blank')" class="location-tag">📍 موقع</span>` : '';
+                let mapIcon = o.geo ? `<span onclick="window.open('https://maps.google.com/?q=${o.geo.lat},${o.geo.lng}','_blank')" class="location-tag">📍 موقع GPS</span>` : '';
+                let extraInfo = "";
+                if(o.manualLocation) extraInfo += `<div style="font-size:11px; color:#555; margin-top:3px;">🏠 <b>العنوان:</b> ${o.manualLocation}</div>`;
+                if(o.notes) extraInfo += `<div style="font-size:11px; color:#d32f2f; margin-top:3px;">📝 <b>ملاحظة:</b> ${o.notes}</div>`;
 
                 d.innerHTML += `
                 <div class="order-card ${statusClass}">
@@ -511,6 +520,7 @@
                     </div>
                     <div class="order-info">
                         <span class="client-name">العميل: ${o.client || "غير محدد"}</span> ${mapIcon}<br>
+                        ${extraInfo}
                         👤 ${o.user} | 🔢 عدد: ${o.qty || 1} | 📍 ${o.region} <br>
                         📅 ${o.date}
                     </div>
@@ -536,7 +546,7 @@
             }
         }
 
-        // --- Reports (Updated with Grouping & Route Map) ---
+        // --- Reports ---
         window.renderReport = function() {
             let tb = document.getElementById("r-body"); 
             let thead = document.getElementById("r-head");
@@ -554,7 +564,6 @@
             if(selectedRegions.length > 0) l = l.filter(o => selectedRegions.includes(o.region));
             else if (!currentUser.isAdmin) l = l.filter(o => o.region === currentUser.region);
 
-            // Store for map
             currentReportOrders = l;
             document.getElementById("btn-route-map").style.display = (l.length > 0) ? "inline-block" : "none";
 
@@ -562,7 +571,7 @@
             l.sort((a,b) => new Date(b.date) - new Date(a.date));
 
             if (isGrouped) {
-                // Grouped Mode
+                // Grouping Logic
                 thead.innerHTML = `<tr>
                     <th style="background:#ddd">العميل</th>
                     <th style="background:#ddd">المنطقة</th>
@@ -611,7 +620,7 @@
                 }
 
             } else {
-                // Detailed Mode
+                // Detailed Logic
                 thead.innerHTML = `<tr><th>العميل</th><th>المنتج</th><th>العدد</th><th>السعر</th><th>الإجمالي</th></tr>`;
                 tfootLabel.colSpan = 4;
 
@@ -619,7 +628,8 @@
                    let q = parseInt(o.qty) || 1;
                    let t = parseFloat(o.total) || parseFloat(o.price);
                    grandTotal += t;
-                   tb.innerHTML += `<tr><td>${o.client||'-'}</td><td>${o.product}</td><td>${q}</td><td>${o.price}</td><td>${t}</td></tr>`;
+                   let noteText = o.notes ? `<br><small style="color:red">(${o.notes})</small>` : '';
+                   tb.innerHTML += `<tr><td>${o.client||'-'} ${noteText}</td><td>${o.product}</td><td>${q}</td><td>${o.price}</td><td>${t}</td></tr>`;
                 });
             }
 
@@ -629,46 +639,26 @@
             document.getElementById("print-area").style.display = "block";
         }
 
-        // --- Route Map Logic ---
         window.openRouteMap = function() {
-            // Filter orders that have geolocation
             let locs = currentReportOrders.filter(o => o.geo && o.geo.lat).map(o => `${o.geo.lat},${o.geo.lng}`);
-            
-            if(locs.length === 0) {
-                alert("لا توجد طلبات محفوظة بالموقع الجغرافي في هذا التقرير.");
-                return;
-            }
-
-            // Remove duplicates
+            if(locs.length === 0) { alert("لا توجد طلبات محفوظة بالموقع الجغرافي في هذا التقرير."); return; }
             let uniqueLocs = [...new Set(locs)];
-            
-            // Limit to avoid URL overflow (Google allows ~20 waypoints roughly)
-            if(uniqueLocs.length > 20) {
-                if(!confirm(`العدد كبير (${uniqueLocs.length}). سيتم رسم خط سير لأول 20 عميل فقط. متابعة؟`)) return;
-                uniqueLocs = uniqueLocs.slice(0, 20);
-            }
-
-            // Construct URL: origin=Current, destination=Last, waypoints=AllOthers
-            let destination = uniqueLocs.pop(); // Remove last one for dest
+            if(uniqueLocs.length > 20) { if(!confirm(`العدد كبير (${uniqueLocs.length}). سيتم رسم خط سير لأول 20 عميل فقط. متابعة؟`)) return; uniqueLocs = uniqueLocs.slice(0, 20); }
+            let destination = uniqueLocs.pop();
             let waypoints = uniqueLocs.join('|');
-            
             let url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
             if(waypoints) url += `&waypoints=${waypoints}`;
-            
-            // Try to get current start location
             window.open(url, '_blank');
         }
 
         window.downloadPDF = function() { window.renderReport(); html2pdf().from(document.getElementById("print-area")).save("Report.pdf"); }
 
-        // --- Admin Users ---
         function renderUsersTable() {
             let d=document.getElementById("users-list"); d.innerHTML="";
             globalUsers.forEach(u=>{
                 let role = u.isAdmin ? '<span style="color:red; font-weight:bold;">Admin</span>' : 'موظف';
                 if(u.isLineManager) role = '<span style="color:blue; font-weight:bold;">مدير لاين</span>';
                 let job = u.job ? `[${u.job}]` : '';
-                
                 d.innerHTML+=`
                 <div class="user-card">
                     <div><b>${u.user}</b> ${job} <small>(${u.region})</small><br><span style="font-size:11px; color:#777;">${role}</span></div>
@@ -687,21 +677,17 @@
             document.getElementById("u-name").value = u.user; document.getElementById("u-pass").value = u.pass;
             document.getElementById("u-job").value = u.job||""; document.getElementById("u-reg-select").value = u.region;
             document.getElementById("edit-user-id").value = id;
-            
             document.getElementById("perm-admin").checked = u.isAdmin||false;
             document.getElementById("perm-price").checked = u.canPrice||false;
             document.getElementById("perm-report").checked = u.canReport||false;
             document.getElementById("perm-deliver").checked = u.canDeliver||false;
             document.getElementById("perm-archive").checked = u.canArchive||false;
             document.getElementById("perm-linemanager").checked = u.isLineManager||false;
-            
             toggleLineMgr();
             let mgrRegs = u.manageRegions || [];
             document.querySelectorAll("#u-mgr-regions input").forEach(c => c.checked = mgrRegs.includes(c.value));
-
             let uLines = u.lines||[];
             document.querySelectorAll("#u-lines-check input").forEach(c => c.checked = uLines.includes(c.value));
-            
             document.getElementById("user-form-panel").classList.add("edit-mode");
             document.getElementById("user-form-title").innerText = "تعديل: "+u.user;
             document.getElementById("btn-save-user").innerText = "حفظ التعديلات";
