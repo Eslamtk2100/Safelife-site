@@ -106,11 +106,6 @@
             <button id="btnGuest" style="width:100%; padding:12px; background:transparent; border:1px solid #ccc; border-radius:10px; margin-top:10px; color:var(--main);">دخول زائر</button>
             
             <p id="error-msg" style="color:#e74c3c; display:none; margin-top:10px;">بيانات خاطئة</p>
-
-            <!-- زر الإنقاذ (معرف بـ ID لضمان العمل) -->
-            <div style="margin-top:30px; border-top:1px solid #eee; padding-top:10px;">
-                <button id="btn-rescue" style="background:#eee; color:#333; font-size:11px; padding:8px; width:100%; cursor:pointer;">⚠️ تهيئة النظام (اضغط هنا لإصلاح الدخول)</button>
-            </div>
         </div>
     </div>
 
@@ -264,35 +259,10 @@
         let orderTab = 'active';
         const DEFAULT_IMG = "https://cdn-icons-png.flaticon.com/512/2965/2965363.png";
 
-        // --- Emergency Fix Function ---
-        window.fixSystem = async function() {
-            if(!confirm("سيتم تهيئة النظام وإنشاء حساب الأدمن (admin / 1234). هل أنت متأكد؟")) return;
-            showLoader(true);
-            try {
-                // Create Admin
-                await addDoc(collection(db,"users"), { 
-                    user:"admin", pass:"1234", region:"all", lines:["all"], 
-                    isAdmin:true, canPrice:true, canReport:true, canDeliver:true, canArchive:true, job:"System Admin" 
-                });
-                
-                // Default Settings
-                await setDoc(doc(db,"settings","config"), {
-                    cats: ["Pharma"],
-                    lines: ["Line 1", "Line 2", "Line 3", "Line 4", "Line 5", "Line 6"],
-                    regs: ["القاهرة", "الجيزة", "الدلتا", "الإسكندرية", "الصعيد"],
-                    logo: "https://i.ibb.co/QnHk7z2/Safe-Life-Logo.png"
-                }, { merge: true });
-
-                alert("تم الإصلاح بنجاح! يمكنك الدخول الآن بـ admin و 1234");
-            } catch(e) { alert("خطأ: " + e.message); }
-            showLoader(false);
-        }
-
         // --- Event Listeners ---
         document.getElementById('btnLogin').addEventListener('click', login);
         document.getElementById('btnGuest').addEventListener('click', () => startApp({user:"زائر", region:"none", lines:["all"], isAdmin:false, canReport:false}));
         document.getElementById('btnLogout').addEventListener('click', () => location.reload());
-        document.getElementById('btn-rescue').addEventListener('click', window.fixSystem);
 
         async function login() {
             let u = document.getElementById("l-user").value;
