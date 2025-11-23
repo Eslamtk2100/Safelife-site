@@ -3,17 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Safelife - V23 Full System</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1e3c72">
+    <title>Safelife - V25 (High Performance)</title>
     
+    <!-- Fonts & Libraries -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
         :root { --main: #1e3c72; --sec: #2a5298; --accent: #ffc107; --green: #2ecc71; --bg: #f4f7f6; }
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; font-family: 'Cairo', sans-serif; background-color: var(--bg); padding-bottom: 80px; color: #333; }
+        body { margin: 0; font-family: 'Cairo', sans-serif; background-color: var(--bg); padding-bottom: 80px; color: #333; user-select: none; }
 
         /* Login Screen */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
@@ -26,6 +32,13 @@
         #main-app { display: none; }
         header { background: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
         
+        /* Dashboard */
+        .chart-container { background: white; padding: 15px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .stat-num { font-size: 20px; font-weight: bold; color: var(--main); }
+        .stat-label { font-size: 12px; color: #777; }
+
         /* Products Grid */
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; }
         @media (min-width: 600px) { .grid-container { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
@@ -49,7 +62,6 @@
         .order-info { font-size: 11px; color: #555; margin-top: 5px; }
         .client-name { color: var(--main); font-weight: bold; background: #eef2f5; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
         .location-tag { font-size: 10px; color: blue; cursor: pointer; text-decoration: underline; margin-right: 5px; }
-        
         .deliver-btn { background: var(--green); color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; cursor: pointer; margin-top: 5px; display: inline-block; }
         
         .tabs-container { display: flex; padding: 10px; gap: 10px; background: #fff; border-bottom: 1px solid #eee; }
@@ -122,15 +134,40 @@
             <button class="btn-red" id="btnLogout">خروج</button>
         </header>
 
+        <!-- Dashboard -->
+        <div id="page-dashboard" class="page-section">
+            <h3 style="color:var(--main);">📊 لوحة القيادة</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-num" id="dash-total-sales">0</div>
+                    <div class="stat-label">إجمالي المبيعات</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num" id="dash-total-orders">0</div>
+                    <div class="stat-label">عدد الطلبات</div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <h5>🏆 أداء المندوبين</h5>
+                <canvas id="chart-reps"></canvas>
+            </div>
+            <div class="chart-container">
+                <h5>📦 الأصناف الأكثر مبيعاً</h5>
+                <canvas id="chart-prods"></canvas>
+            </div>
+        </div>
+
         <!-- Products -->
-        <div id="page-products" class="page-section active-page">
+        <div id="page-products" class="page-section">
             <div class="client-section">
                 <label style="font-size:12px; color:#777;">بيانات العميل:</label>
-                <input type="text" id="current-client" class="client-input" placeholder="اسم العميل / الصيدلية *">
+                <input type="text" id="current-client" class="client-input" list="clients-datalist" placeholder="ابحث عن اسم العميل أو اكتبه...">
+                <datalist id="clients-datalist"></datalist>
+
                 <input type="text" id="manual-location" class="client-input" placeholder="وصف العنوان (مثلاً: بجوار المسجد)...">
-                <textarea id="order-notes" class="client-input" rows="1" placeholder="ملاحظات هامة (مثلاً: الاستلام بعد الظهر)..."></textarea>
+                <textarea id="order-notes" class="client-input" rows="1" placeholder="ملاحظات هامة..."></textarea>
                 
-                <small style="color:blue; font-size:10px;">📍 سيتم أيضاً حفظ إحداثيات GPS تلقائياً.</small>
+                <small style="color:blue; font-size:10px;">📍 سيتم حفظ GPS تلقائياً</small>
             </div>
 
             <div id="admin-tools" class="admin-panel" style="display:none; border-color:var(--accent);">
@@ -174,10 +211,8 @@
 
                 <label style="font-weight:bold; font-size:13px;">حدد المناطق للتجميع:</label>
                 <div id="report-regions-check" class="regions-grid"></div>
-                
                 <div style="text-align:center; margin-top:15px; display:flex; flex-direction:column; gap:8px;">
                     <button onclick="openRouteMap()" class="btn-map" id="btn-route-map" style="display:none;">🗺️ رسم خط سير التوزيع (Google Maps)</button>
-                    
                     <div style="display:flex; gap:10px; justify-content:center;">
                         <button onclick="renderReport()" style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:10px; flex:1;">عرض التقرير</button>
                         <button onclick="downloadPDF()" style="background:#e74c3c; color:white; border:none; padding:10px 20px; border-radius:10px; flex:1;">تحميل PDF</button>
@@ -201,6 +236,19 @@
         <!-- Admin -->
         <div id="page-admin" class="page-section">
             <h3>⚙️ الإعدادات</h3>
+            
+            <!-- Import Clients (Optimized for 5000+) -->
+            <div class="admin-panel">
+                <h4 style="color:var(--green);">📥 استيراد العملاء (Excel)</h4>
+                <p style="font-size:12px; color:#666;">ارفع ملف إكسيل (أول عمود = الأسماء). يتحمل حتى 5000 عميل.</p>
+                <div style="display:flex; gap:5px;">
+                    <input type="file" id="file-clients" accept=".xlsx, .xls, .csv">
+                    <button class="btn-green" onclick="importClients()">بدء الرفع</button>
+                </div>
+                <div id="upload-status" style="margin-top:5px; color:blue; font-size:12px;"></div>
+                <div id="clients-count" style="margin-top:5px; font-weight:bold; font-size:12px;"></div>
+            </div>
+
             <div class="admin-panel">
                 <h4>شعار النظام</h4>
                 <div style="display:flex; gap:5px;">
@@ -249,7 +297,8 @@
         </div>
 
         <div class="bottom-nav">
-            <button onclick="nav('products')" class="active" id="btn-products"><span>💊</span>المنتجات</button>
+            <button onclick="nav('dashboard')" id="btn-dashboard"><span>🏠</span>الرئيسية</button>
+            <button onclick="nav('products')" id="btn-products"><span>💊</span>المنتجات</button>
             <button onclick="nav('orders')" id="btn-orders"><span>📝</span>الطلبات</button>
             <button onclick="nav('reports')" id="btn-reports" style="display:none;"><span>📊</span>التقارير</button>
             <button onclick="nav('admin')" id="btn-admin" style="display:none;"><span>⚙️</span>الإعدادات</button>
@@ -258,7 +307,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where } 
+        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where, writeBatch } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -274,12 +323,16 @@
         const db = getFirestore(app);
 
         let currentUser = null;
-        let globalProducts=[], globalOrders=[], globalUsers=[];
+        let globalProducts=[], globalOrders=[], globalUsers=[], globalClients=[];
         let globalSettings = { cats:[], lines:[], regs:[], logo:"" };
         let activeCat='all', activeLine='all';
         let orderTab = 'active';
         let currentReportOrders = [];
         const DEFAULT_IMG = "https://cdn-icons-png.flaticon.com/512/2965/2965363.png";
+        
+        // Charts
+        let chartRepsInstance = null;
+        let chartProdsInstance = null;
 
         function getCurrentLocation() {
             return new Promise((resolve) => {
@@ -331,15 +384,24 @@
 
             document.getElementById("btn-orders").style.display = isVisitor ? "none" : "flex";
 
-            listenToProducts(); listenToOrders();
+            listenToProducts(); listenToOrders(); listenToClients();
             if(user.isAdmin) listenToUsers();
+            
+            nav('dashboard');
             showLoader(false);
         }
 
         function listenToSettings(){ onSnapshot(doc(db,"settings","config"), d=>{ if(d.exists()){ globalSettings=d.data(); updateUI(); } }); }
         function listenToProducts(){ onSnapshot(collection(db,"products"), s=>{ globalProducts=[]; s.forEach(d=>globalProducts.push({...d.data(),id:d.id})); renderProducts(); }); }
-        function listenToOrders(){ onSnapshot(collection(db,"orders"), s=>{ globalOrders=[]; s.forEach(d=>globalOrders.push({...d.data(),id:d.id})); renderOrders(); }); }
+        function listenToOrders(){ onSnapshot(collection(db,"orders"), s=>{ globalOrders=[]; s.forEach(d=>globalOrders.push({...d.data(),id:d.id})); updateDashboard(); renderOrders(); }); }
         function listenToUsers(){ onSnapshot(collection(db,"users"), s=>{ globalUsers=[]; s.forEach(d=>globalUsers.push({...d.data(),id:d.id})); renderUsersTable(); }); }
+        function listenToClients(){ 
+            onSnapshot(collection(db,"clients"), s=>{ 
+                globalClients=[]; 
+                s.forEach(d=>globalClients.push(d.data().name)); 
+                updateClientsList(); 
+            }); 
+        }
 
         function updateUI() {
             if(globalSettings.logo) {
@@ -362,6 +424,17 @@
             });
 
             if(currentUser && currentUser.isAdmin) renderAdminLists();
+        }
+
+        function updateClientsList() {
+            let dl = document.getElementById("clients-datalist");
+            dl.innerHTML = "";
+            globalClients.sort().forEach(c => {
+                dl.innerHTML += `<option value="${c}">`;
+            });
+            if(currentUser && currentUser.isAdmin) {
+                document.getElementById("clients-count").innerText = `عدد العملاء المسجلين: ${globalClients.length}`;
+            }
         }
 
         window.filt=function(t,v,el) {
@@ -439,6 +512,117 @@
             }
         }
 
+        // --- Dashboard Logic ---
+        function updateDashboard() {
+            if (!document.getElementById("page-dashboard")) return;
+            
+            let orders = globalOrders;
+            if (!currentUser.isAdmin) {
+                orders = orders.filter(o => o.user === currentUser.user);
+            }
+
+            let totalSales = orders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+            document.getElementById("dash-total-sales").innerText = totalSales.toLocaleString() + " ج.م";
+            document.getElementById("dash-total-orders").innerText = orders.length;
+
+            if (currentUser.isAdmin) {
+                let repSales = {};
+                orders.forEach(o => {
+                    repSales[o.user] = (repSales[o.user] || 0) + (parseFloat(o.total) || 0);
+                });
+                renderChart("chart-reps", "مبيعات المندوبين", Object.keys(repSales), Object.values(repSales), 'bar');
+            }
+
+            let prodCount = {};
+            orders.forEach(o => {
+                prodCount[o.product] = (prodCount[o.product] || 0) + parseInt(o.qty);
+            });
+            let sortedProds = Object.entries(prodCount).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            renderChart("chart-prods", "الأكثر مبيعاً", sortedProds.map(x=>x[0]), sortedProds.map(x=>x[1]), 'pie');
+        }
+
+        function renderChart(canvasId, label, labels, data, type) {
+            let ctx = document.getElementById(canvasId).getContext('2d');
+            if (canvasId === "chart-reps" && chartRepsInstance) chartRepsInstance.destroy();
+            if (canvasId === "chart-prods" && chartProdsInstance) chartProdsInstance.destroy();
+
+            let config = {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: ['#1e3c72', '#2a5298', '#ffc107', '#2ecc71', '#e74c3c'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true }
+            };
+
+            let chart = new Chart(ctx, config);
+            if (canvasId === "chart-reps") chartRepsInstance = chart;
+            if (canvasId === "chart-prods") chartProdsInstance = chart;
+        }
+
+        // --- Excel Import Logic (Optimized for 5000 records) ---
+        window.importClients = async function() {
+            let fileInput = document.getElementById('file-clients');
+            if(!fileInput.files.length) return alert("اختر ملف أولاً");
+            
+            let file = fileInput.files[0];
+            let reader = new FileReader();
+            
+            reader.onload = async function(e) {
+                try {
+                    let data = new Uint8Array(e.target.result);
+                    let workbook = XLSX.read(data, {type: 'array'});
+                    let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    let json = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                    
+                    if(!confirm(`تم العثور على ${json.length} صف. هل أنت متأكد من الاستيراد؟ (قد يستغرق وقتاً)`)) return;
+
+                    showLoader(true);
+                    let statusDiv = document.getElementById("upload-status");
+                    
+                    // Batch processing (500 at a time)
+                    const CHUNK_SIZE = 450; // Safe limit
+                    let total = json.length;
+                    let uploaded = 0;
+
+                    for (let i = 0; i < total; i += CHUNK_SIZE) {
+                        let chunk = json.slice(i, i + CHUNK_SIZE);
+                        let batch = writeBatch(db);
+                        
+                        chunk.forEach(row => {
+                            if(row[0]) {
+                                let name = row[0].toString().trim();
+                                // Check duplicate in local memory (optional, skip for speed)
+                                if(!globalClients.includes(name)) {
+                                    let ref = doc(collection(db, "clients")); // Auto ID
+                                    batch.set(ref, { name: name });
+                                }
+                            }
+                        });
+
+                        await batch.commit();
+                        uploaded += chunk.length;
+                        statusDiv.innerText = `جاري الرفع... (${uploaded} من ${total})`;
+                    }
+
+                    alert("✅ تم استيراد العملاء بنجاح!");
+                    fileInput.value = "";
+                    statusDiv.innerText = "تم الانتهاء.";
+                } catch (err) {
+                    alert("حدث خطأ أثناء الرفع: " + err.message);
+                } finally {
+                    showLoader(false);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // --- CRUD & Core Functions ---
         window.saveProduct = async function() {
             let id = document.getElementById("edit-id").value;
             let d = {
@@ -571,7 +755,6 @@
             l.sort((a,b) => new Date(b.date) - new Date(a.date));
 
             if (isGrouped) {
-                // Grouping Logic
                 thead.innerHTML = `<tr>
                     <th style="background:#ddd">العميل</th>
                     <th style="background:#ddd">المنطقة</th>
@@ -620,7 +803,6 @@
                 }
 
             } else {
-                // Detailed Logic
                 thead.innerHTML = `<tr><th>العميل</th><th>المنتج</th><th>العدد</th><th>السعر</th><th>الإجمالي</th></tr>`;
                 tfootLabel.colSpan = 4;
 
@@ -712,7 +894,6 @@
             let j=document.getElementById("u-job").value;
             let l=[]; document.querySelectorAll("#u-lines-check input:checked").forEach(c=>l.push(c.value));
             let mRegs=[]; document.querySelectorAll("#u-mgr-regions input:checked").forEach(c=>mRegs.push(c.value));
-
             if(u&&p&&l.length>0){ 
                 let data={
                     user:u, pass:p, region:r, lines:l, job:j, 
@@ -763,6 +944,7 @@
             document.getElementById('btn-'+p).classList.add('active');
             if(p==='orders') renderOrders();
             if(p==='reports') document.getElementById("print-area").style.display="none";
+            if(p==='dashboard') updateDashboard();
         }
         window.logout=function(){location.reload();}
         function showLoader(s){document.getElementById("loader").style.display=s?"flex":"none";}
