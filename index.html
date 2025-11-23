@@ -98,14 +98,12 @@
     <!-- 1. Login Screen -->
     <div id="login-screen">
         <div class="login-box">
-            <img id="app-logo-login" src="https://i.ibb.co/ZRmWMKvR/logo-cmyk-page-0001.jpg
-" style="width: 180px; margin-bottom: 20px;">
+            <img id="app-logo-login" src="https://i.ibb.co/ZRmWMKvR/logo-cmyk-page-0001.jpg" style="width: 180px; margin-bottom: 20px;">
             <h3 style="color:var(--main);">بوابة الموظفين</h3>
             <input type="text" id="l-user" placeholder="اسم المستخدم">
             <input type="password" id="l-pass" placeholder="كلمة المرور">
             <button id="btnLogin" style="width:100%; padding:12px; background:var(--main); color:white; border:none; border-radius:10px; margin-top:10px;">دخول</button>
             <button id="btnGuest" style="width:100%; padding:12px; background:transparent; border:1px solid #ccc; border-radius:10px; margin-top:10px; color:var(--main);">دخول زائر</button>
-            
             <p id="error-msg" style="color:#e74c3c; display:none; margin-top:10px;">بيانات خاطئة</p>
         </div>
     </div>
@@ -113,7 +111,7 @@
     <!-- 2. App -->
     <div id="main-app">
         <header>
-            <img id="app-logo-header" src="https://i.ibb.co/QnHk7z2/Safe-Life-Logo.png" style="height:35px;">
+            <img id="app-logo-header" src="https://i.ibb.co/ZRmWMKvR/logo-cmyk-page-0001.jpg" style="height:35px;">
             <span id="head-user" style="font-size:12px; font-weight:bold;"></span>
             <button class="btn-red" id="btnLogout">خروج</button>
         </header>
@@ -156,6 +154,14 @@
         <div id="page-reports" class="page-section">
             <h3>📊 تقارير التوزيع</h3>
             <div class="admin-panel">
+                <!-- Grouping Option -->
+                <div style="margin-bottom:10px; padding:10px; background:#e8f5e9; border-radius:5px; border:1px solid #c8e6c9;">
+                    <label style="font-weight:bold; color:var(--main); cursor:pointer;">
+                        <input type="checkbox" id="chk-group-client" onchange="renderReport()"> 
+                        📁 تجميع حسب العميل (دمج طلبات المندوبين)
+                    </label>
+                </div>
+
                 <label style="font-weight:bold; font-size:13px;">حدد المناطق للتجميع:</label>
                 <div id="report-regions-check" class="regions-grid"></div>
                 <div style="text-align:center; margin-top:15px;">
@@ -165,14 +171,14 @@
             </div>
             <div id="print-area">
                 <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:10px;">
-                    <img id="app-logo-print" src="https://i.ibb.co/QnHk7z2/Safe-Life-Logo.png" style="width:150px;">
+                    <img id="app-logo-print" src="https://i.ibb.co/ZRmWMKvR/logo-cmyk-page-0001.jpg" style="width:150px;">
                     <h3>Safelife Order Report</h3>
                     <p style="font-size:12px;">User: <b id="r-user"></b> | Date: <b id="r-date"></b></p>
                 </div>
-                <table>
-                    <thead><tr><th>العميل</th><th>المنتج</th><th>العدد</th><th>السعر</th><th>الإجمالي</th></tr></thead>
+                <table id="report-table">
+                    <thead id="r-head"><tr><th>العميل</th><th>المنتج</th><th>العدد</th><th>السعر</th><th>الإجمالي</th></tr></thead>
                     <tbody id="r-body"></tbody>
-                    <tfoot><tr><th colspan="4">الإجمالي الكلي</th><th id="r-total"></th></tr></tfoot>
+                    <tfoot><tr><th colspan="4" id="r-foot-label">الإجمالي الكلي</th><th id="r-total"></th></tr></tfoot>
                 </table>
             </div>
         </div>
@@ -240,7 +246,6 @@
         import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // --- بياناتك الخاصة (تعمل فوراً) ---
         const firebaseConfig = {
             apiKey: "AIzaSyCS-YWHs-MNaEVzh4G5VEGp_OZKYano1lE",
             authDomain: "safelife-db.firebaseapp.com",
@@ -300,7 +305,7 @@
 
             document.getElementById("btn-orders").style.display = isVisitor ? "none" : "flex";
 
-            listenToSettings(); listenToProducts(); listenToOrders();
+            listenToProducts(); listenToOrders();
             if(user.isAdmin) listenToUsers();
             showLoader(false);
         }
@@ -331,7 +336,7 @@
                 repRegs.innerHTML += `<label style="display:block; font-size:12px;"><input type="checkbox" value="${r}"> ${r}</label>`;
             });
 
-            if(currentUser.isAdmin) renderAdminLists();
+            if(currentUser && currentUser.isAdmin) renderAdminLists();
         }
 
         window.filt=function(t,v,el) {
@@ -349,7 +354,7 @@
                 let img = p.img?p.img:DEFAULT_IMG;
                 let btns = "";
                 let addSec = "";
-                if(currentUser.user!=="زائر") {
+                if(currentUser && currentUser.user!=="زائر") {
                     if(currentUser.isAdmin || currentUser.canPrice) {
                         btns=`<div style="position:absolute; top:5px; left:5px;">
                         <button style="background:#eee; border:none; border-radius:50%; width:25px; height:25px;" onclick="editProd('${p.id}')">✏️</button>
@@ -501,12 +506,17 @@
             }
         }
 
-        // --- Reports ---
+        // --- Reports (Updated with Grouping) ---
         window.renderReport = function() {
-            let tb=document.getElementById("r-body"); tb.innerHTML="";
-            let l=globalOrders;
+            let tb = document.getElementById("r-body"); 
+            let thead = document.getElementById("r-head");
+            let tfootLabel = document.getElementById("r-foot-label");
+            tb.innerHTML = "";
             
-            if(!currentUser.isAdmin && !currentUser.canReport) return;
+            let l = globalOrders;
+            let isGrouped = document.getElementById("chk-group-client").checked;
+
+            if(!currentUser || (!currentUser.isAdmin && !currentUser.canReport)) return;
 
             let selectedRegions = [];
             document.querySelectorAll("#report-regions-check input:checked").forEach(c => selectedRegions.push(c.value));
@@ -514,21 +524,77 @@
             if(selectedRegions.length > 0) l = l.filter(o => selectedRegions.includes(o.region));
             else if (!currentUser.isAdmin) l = l.filter(o => o.region === currentUser.region);
 
-            let tot=0;
+            let grandTotal = 0;
             l.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-            l.forEach(o=>{
-               let q = parseInt(o.qty) || 1;
-               let t = parseFloat(o.total) || parseFloat(o.price);
-               tot += t;
-               tb.innerHTML += `<tr><td>${o.client||'-'}</td><td>${o.product}</td><td>${q}</td><td>${o.price}</td><td>${t}</td></tr>`;
-            });
+            if (isGrouped) {
+                // --- وضع التجميع ---
+                thead.innerHTML = `<tr>
+                    <th style="background:#ddd">العميل</th>
+                    <th style="background:#ddd">المنطقة</th>
+                    <th style="background:#ddd">الأصناف (العدد)</th>
+                    <th style="background:#ddd">المندوبين</th>
+                    <th style="background:#ddd">إجمالي القيمة</th>
+                </tr>`;
+                tfootLabel.colSpan = 4;
 
-            document.getElementById("r-total").innerText=tot + " ج.م";
-            document.getElementById("r-user").innerText=currentUser.user;
-            document.getElementById("r-date").innerText=new Date().toLocaleDateString();
-            document.getElementById("print-area").style.display="block";
+                let groups = {};
+                l.forEach(o => {
+                    let clientName = (o.client || "بدون اسم").trim();
+                    let key = clientName + "_" + o.region;
+
+                    if (!groups[key]) {
+                        groups[key] = {
+                            client: clientName,
+                            region: o.region,
+                            products: [],
+                            users: new Set(),
+                            totalVal: 0
+                        };
+                    }
+
+                    let q = parseInt(o.qty) || 1;
+                    let t = parseFloat(o.total) || parseFloat(o.price);
+                    
+                    groups[key].products.push(`${o.product} (${q})`);
+                    groups[key].users.add(o.user);
+                    groups[key].totalVal += t;
+                    grandTotal += t;
+                });
+
+                for (let key in groups) {
+                    let g = groups[key];
+                    let usersStr = Array.from(g.users).join(" + ");
+                    let prodStr = g.products.join("، ");
+
+                    tb.innerHTML += `<tr>
+                        <td style="font-weight:bold">${g.client}</td>
+                        <td>${g.region}</td>
+                        <td style="font-size:11px; text-align:right;">${prodStr}</td>
+                        <td style="font-size:11px;">${usersStr}</td>
+                        <td style="font-weight:bold">${g.totalVal.toLocaleString()}</td>
+                    </tr>`;
+                }
+
+            } else {
+                // --- الوضع العادي ---
+                thead.innerHTML = `<tr><th>العميل</th><th>المنتج</th><th>العدد</th><th>السعر</th><th>الإجمالي</th></tr>`;
+                tfootLabel.colSpan = 4;
+
+                l.forEach(o => {
+                   let q = parseInt(o.qty) || 1;
+                   let t = parseFloat(o.total) || parseFloat(o.price);
+                   grandTotal += t;
+                   tb.innerHTML += `<tr><td>${o.client||'-'}</td><td>${o.product}</td><td>${q}</td><td>${o.price}</td><td>${t}</td></tr>`;
+                });
+            }
+
+            document.getElementById("r-total").innerText = grandTotal.toLocaleString() + " ج.م";
+            document.getElementById("r-user").innerText = currentUser.user;
+            document.getElementById("r-date").innerText = new Date().toLocaleDateString();
+            document.getElementById("print-area").style.display = "block";
         }
+
         window.downloadPDF = function() { window.renderReport(); html2pdf().from(document.getElementById("print-area")).save("Report.pdf"); }
 
         // --- Admin Users ---
@@ -650,6 +716,9 @@
         }
         window.logout=function(){location.reload();}
         function showLoader(s){document.getElementById("loader").style.display=s?"flex":"none";}
+
+        // Start setting listener immediately
+        listenToSettings();
     </script>
 </body>
 </html>
