@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V30 (Auto Cleaner)</title>
+    <title>Safelife - V32 (High Speed)</title>
     
     <!-- Fonts & Libraries -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,6 +27,7 @@
 
         /* Loader */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 100000; display: none; flex-direction: column; justify-content: center; align-items: center; }
+        #loader-text { margin-top: 10px; color: var(--main); font-weight: bold; }
 
         /* App Structure */
         #main-app { display: none; }
@@ -112,6 +113,7 @@
     <div id="loader">
         <div style="font-size:30px; margin-bottom:10px;">↻</div>
         <h3 style="color:var(--main);">جاري الاتصال...</h3>
+        <div id="loader-text" style="font-size:12px;"></div>
     </div>
 
     <!-- 1. Login Screen -->
@@ -162,10 +164,12 @@
         <div id="page-products" class="page-section">
             <div class="client-section">
                 <label style="font-size:12px; color:#777;">بيانات العميل:</label>
-                <input type="text" id="current-client" class="client-input" list="clients-datalist" placeholder="اكتب أول حرفين من اسم العميل...">
+                
+                <!-- INPUT CHANGED: No datalist overload, uses JS event -->
+                <input type="text" id="current-client" class="client-input" list="clients-datalist" placeholder="اكتب اسم العميل للبحث..." oninput="searchClients(this.value)">
                 <datalist id="clients-datalist"></datalist>
                 
-                <small id="client-load-status" style="display:block; color:var(--green); font-size:11px; margin-bottom:5px; font-weight:bold;">جاري تحميل العملاء...</small>
+                <small id="client-search-hint" style="display:block; color:#666; font-size:10px; margin-bottom:5px;">🔍 اكتب حرفين أو أكثر للبحث في العملاء</small>
 
                 <input type="text" id="manual-location" class="client-input" placeholder="وصف العنوان (مثلاً: بجوار المسجد)...">
                 <textarea id="order-notes" class="client-input" rows="1" placeholder="ملاحظات هامة..."></textarea>
@@ -242,7 +246,7 @@
         <div id="page-admin" class="page-section">
             <h3>⚙️ الإعدادات</h3>
             
-            <!-- Import Clients (Optimized V28) -->
+            <!-- Import Clients -->
             <div class="admin-panel">
                 <h4 style="color:var(--green);">📥 استيراد العملاء (Excel)</h4>
                 <p style="font-size:12px; color:#666;">ارفع ملف إكسيل (أول عمود = الأسماء). يتحمل حتى 5000 عميل.</p>
@@ -251,7 +255,6 @@
                     <button class="btn-green" onclick="importClients()">بدء الرفع</button>
                 </div>
                 <div id="upload-status" style="margin-top:5px; color:blue; font-size:12px;"></div>
-                <div id="clients-count" style="margin-top:5px; font-weight:bold; font-size:12px;"></div>
                 
                 <hr style="margin:10px 0;">
                 <div style="display:flex; gap:5px;">
@@ -260,10 +263,11 @@
                 </div>
             </div>
 
-            <!-- System Maintenance Tools (New in V30) -->
+            <!-- System Maintenance -->
             <div class="admin-panel" style="border: 2px solid orange;">
                 <h4 style="color:orange;">⚠️ أدوات صيانة النظام (التنظيف)</h4>
                 <p style="font-size:11px; color:#555;">استخدم هذه الأزرار لحذف البيانات المكررة تلقائياً.</p>
+                <div id="cleanup-status" style="margin:5px 0; color:red; font-weight:bold; font-size:12px;"></div>
                 <button class="btn-warning" onclick="cleanDuplicateClients()">🧹 تنظيف تكرار العملاء</button>
                 <button class="btn-warning" onclick="cleanDuplicateProducts()">🧹 تنظيف تكرار المنتجات</button>
                 <button class="btn-warning" onclick="cleanDuplicateSettings()">🧹 تنظيف تكرار القوائم</button>
@@ -327,7 +331,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where, writeBatch } 
+        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where, writeBatch, limit, startAt, endAt, orderBy } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -343,14 +347,13 @@
         const db = getFirestore(app);
 
         let currentUser = null;
-        let globalProducts=[], globalOrders=[], globalUsers=[], globalClients=[];
+        let globalProducts=[], globalOrders=[], globalUsers=[];
         let globalSettings = { cats:[], lines:[], regs:[], logo:"" };
         let activeCat='all', activeLine='all';
         let orderTab = 'active';
         let currentReportOrders = [];
         const DEFAULT_IMG = "https://cdn-icons-png.flaticon.com/512/2965/2965363.png";
         
-        // Charts
         let chartRepsInstance = null;
         let chartProdsInstance = null;
 
@@ -372,7 +375,7 @@
         async function login() {
             let u = document.getElementById("l-user").value;
             let p = document.getElementById("l-pass").value;
-            showLoader(true);
+            showLoader(true, "جاري تسجيل الدخول...");
             try {
                 const q = query(collection(db,"users"), where("user","==",u), where("pass","==",p));
                 const snap = await getDocs(q);
@@ -404,7 +407,7 @@
 
             document.getElementById("btn-orders").style.display = isVisitor ? "none" : "flex";
 
-            listenToProducts(); listenToOrders(); listenToClients();
+            listenToProducts(); listenToOrders();
             if(user.isAdmin) listenToUsers();
             
             nav('dashboard');
@@ -416,12 +419,24 @@
         function listenToOrders(){ onSnapshot(collection(db,"orders"), s=>{ globalOrders=[]; s.forEach(d=>globalOrders.push({...d.data(),id:d.id})); updateDashboard(); renderOrders(); }); }
         function listenToUsers(){ onSnapshot(collection(db,"users"), s=>{ globalUsers=[]; s.forEach(d=>globalUsers.push({...d.data(),id:d.id})); renderUsersTable(); }); }
         
-        function listenToClients(){ 
-            onSnapshot(collection(db,"clients"), s=>{ 
-                globalClients=[]; 
-                s.forEach(d=>globalClients.push(d.data().name)); 
-                updateClientsList(); 
-            }); 
+        // --- OPTIMIZED SEARCH CLIENTS (NO LOADING ALL) ---
+        window.searchClients = async function(val) {
+            let dl = document.getElementById("clients-datalist");
+            dl.innerHTML = "";
+            if(!val || val.length < 2) return;
+
+            try {
+                // Firestore query: name >= val AND name <= val + '\uf8ff' (Search prefix)
+                const q = query(collection(db, "clients"), 
+                    where('name', '>=', val), 
+                    where('name', '<=', val + '\uf8ff'),
+                    limit(10)
+                );
+                const snap = await getDocs(q);
+                snap.forEach(doc => {
+                    dl.innerHTML += `<option value="${doc.data().name}">`;
+                });
+            } catch(e) { console.error(e); }
         }
 
         function updateUI() {
@@ -445,28 +460,6 @@
             });
 
             if(currentUser && currentUser.isAdmin) renderAdminLists();
-        }
-
-        function updateClientsList() {
-            let dl = document.getElementById("clients-datalist");
-            let status = document.getElementById("client-load-status");
-            
-            dl.innerHTML = "";
-            globalClients.sort().forEach(c => {
-                dl.innerHTML += `<option value="${c}">`;
-            });
-
-            if(globalClients.length > 0) {
-                status.innerHTML = `✅ تم تحميل ${globalClients.length} عميل (اكتب للبحث)`;
-                status.style.color = "green";
-            } else {
-                status.innerHTML = `⚠️ لا يوجد عملاء مسجلين`;
-                status.style.color = "red";
-            }
-
-            if(currentUser && currentUser.isAdmin) {
-                document.getElementById("clients-count").innerText = `عدد العملاء المسجلين: ${globalClients.length}`;
-            }
         }
 
         window.filt=function(t,v,el) {
@@ -524,7 +517,7 @@
             if(!qty || qty < 1) return alert("الكمية غير صحيحة");
             
             if(confirm(`إضافة ${p.name} (العدد: ${qty}) للعميل: ${client}؟`)) {
-                showLoader(true);
+                showLoader(true, "جاري إرسال الطلب...");
                 let loc = await getCurrentLocation();
                 
                 await addDoc(collection(db,"orders"), {
@@ -544,7 +537,7 @@
             }
         }
 
-        // --- Excel Import Logic ---
+        // --- Excel Import Logic (Optimized) ---
         window.importClients = async function() {
             let fileInput = document.getElementById('file-clients');
             if(!fileInput.files.length) return alert("اختر ملف أولاً");
@@ -564,41 +557,32 @@
 
                     if(!confirm(`تم العثور على ${total} عميل. البدء في الرفع؟ (يرجى عدم إغلاق الشاشة)`)) return;
 
-                    showLoader(true);
+                    showLoader(true, "جاري تحليل الملف...");
                     let statusDiv = document.getElementById("upload-status");
                     
                     const CHUNK_SIZE = 200; 
                     let uploaded = 0;
-                    let duplicates = 0;
-
+                    
                     for (let i = 0; i < total; i += CHUNK_SIZE) {
                         let chunk = cleanJson.slice(i, i + CHUNK_SIZE);
                         let batch = writeBatch(db);
-                        let batchHasData = false;
                         
                         chunk.forEach(row => {
                             let name = row[0].toString().trim();
-                            if(!globalClients.includes(name)) {
-                                let ref = doc(collection(db, "clients"));
-                                batch.set(ref, { name: name });
-                                globalClients.push(name); 
-                                batchHasData = true;
-                            } else {
-                                duplicates++;
-                            }
+                            let ref = doc(collection(db, "clients"));
+                            batch.set(ref, { name: name });
                         });
 
-                        if(batchHasData) await batch.commit();
+                        await batch.commit();
                         uploaded += chunk.length;
                         let percentage = Math.round((uploaded / total) * 100);
-                        statusDiv.innerHTML = `<b>جاري الرفع: ${uploaded} من ${total} (${percentage}%)</b><br><small>تم تخطي ${duplicates} مكرر</small>`;
+                        statusDiv.innerHTML = `<b>جاري الرفع: ${uploaded} من ${total} (${percentage}%)</b>`;
                         await new Promise(r => setTimeout(r, 100)); 
                     }
 
-                    alert(`✅ تمت العملية بنجاح!\nتمت إضافة: ${total - duplicates}\nمكرر: ${duplicates}`);
+                    alert(`✅ تمت العملية بنجاح!`);
                     fileInput.value = "";
                     statusDiv.innerText = "تم الانتهاء.";
-                    updateClientsList(); 
                 } catch (err) {
                     alert("حدث خطأ: " + err.message);
                 } finally {
@@ -608,11 +592,14 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // --- CLEANUP TOOLS (NEW) ---
+        // --- CLEANUP TOOLS ---
         window.cleanDuplicateClients = async function() {
-            if(!confirm("⚠️ تنبيه هام:\nسيتم مسح جميع أسماء العملاء المكررة والإبقاء على نسخة واحدة فقط.\nهذه العملية قد تستغرق وقتاً. هل أنت متأكد؟")) return;
+            if(!confirm("⚠️ تنبيه:\nسيتم فحص قاعدة البيانات وحذف العملاء المكررين.\nالعملية قد تستغرق وقتاً.")) return;
             
-            showLoader(true);
+            showLoader(true, "جاري فحص العملاء...");
+            let statusDiv = document.getElementById("cleanup-status");
+            statusDiv.innerText = "جاري الفحص...";
+
             try {
                 const snap = await getDocs(collection(db, "clients"));
                 let seen = {};
@@ -630,14 +617,18 @@
                 if(duplicates.length === 0) {
                     alert("✅ لا توجد تكرارات.");
                 } else {
-                    // Batch delete (limit 400)
-                    const CHUNK = 400;
+                    const CHUNK = 300;
+                    let deletedCount = 0;
                     for(let i=0; i<duplicates.length; i+=CHUNK) {
                         let batch = writeBatch(db);
                         duplicates.slice(i, i+CHUNK).forEach(ref => batch.delete(ref));
                         await batch.commit();
+                        deletedCount += Math.min(CHUNK, duplicates.length - i);
+                        statusDiv.innerText = `جاري حذف ${deletedCount} من ${duplicates.length}...`;
+                        await new Promise(r => setTimeout(r, 200)); 
                     }
-                    alert(`✅ تم حذف ${duplicates.length} عميل مكرر.`);
+                    alert(`✅ تم تنظيف ${duplicates.length} عميل مكرر بنجاح.`);
+                    statusDiv.innerText = "تم التنظيف.";
                 }
             } catch(e) { alert("خطأ: " + e.message); }
             showLoader(false);
@@ -645,7 +636,10 @@
 
         window.cleanDuplicateProducts = async function() {
             if(!confirm("مسح المنتجات المكررة؟")) return;
-            showLoader(true);
+            showLoader(true, "جاري فحص المنتجات...");
+            let statusDiv = document.getElementById("cleanup-status");
+            statusDiv.innerText = "فحص المنتجات...";
+
             try {
                 const snap = await getDocs(collection(db, "products"));
                 let seen = {};
@@ -655,13 +649,16 @@
                     if(seen[name]) duplicates.push(doc.ref); else seen[name] = true;
                 });
                 
-                const CHUNK = 400;
+                const CHUNK = 300;
                 for(let i=0; i<duplicates.length; i+=CHUNK) {
                     let batch = writeBatch(db);
                     duplicates.slice(i, i+CHUNK).forEach(ref => batch.delete(ref));
                     await batch.commit();
+                    statusDiv.innerText = `حذف ${i + CHUNK} منتج...`;
+                    await new Promise(r => setTimeout(r, 200));
                 }
                 alert(`تم حذف ${duplicates.length} منتج مكرر.`);
+                statusDiv.innerText = "";
             } catch(e) { alert("خطأ: " + e.message); }
             showLoader(false);
         }
@@ -679,11 +676,8 @@
         window.addSingleClient = async function() {
             let name = document.getElementById("single-client-name").value.trim();
             if(!name) return alert("اكتب الاسم");
-            if(globalClients.includes(name)) return alert("⚠️ هذا العميل موجود بالفعل!");
             
             await addDoc(collection(db, "clients"), { name: name });
-            globalClients.push(name);
-            updateClientsList();
             alert("✅ تمت الإضافة");
             document.getElementById("single-client-name").value = "";
         }
@@ -696,7 +690,6 @@
             
             if(!name) return alert("الاسم مطلوب");
 
-            // Prevent Duplicate Product Name
             let exists = globalProducts.some(p => p.name === name && p.id !== id);
             if(exists) return alert("⚠️ هذا المنتج موجود بالفعل!");
 
@@ -706,7 +699,7 @@
                 img: document.getElementById("np-img").value, price: price
             };
             
-            showLoader(true);
+            showLoader(true, "جاري الحفظ...");
             if(id) { await updateDoc(doc(db,"products",id), d); cancelEditProd(); }
             else { await addDoc(collection(db,"products"), d); alert("تم"); }
             showLoader(false);
@@ -1018,16 +1011,8 @@
 
         window.saveUser = async function() {
             let id = document.getElementById("edit-user-id").value;
-            let u=document.getElementById("u-name").value.trim();
-            let p=document.getElementById("u-pass").value, r=document.getElementById("u-reg-select").value;
+            let u=document.getElementById("u-name").value, p=document.getElementById("u-pass").value, r=document.getElementById("u-reg-select").value;
             let j=document.getElementById("u-job").value;
-            
-            if(!u) return alert("اسم المستخدم مطلوب");
-
-            // Prevent Duplicate User Name
-            let exists = globalUsers.some(user => user.user === u && user.id !== id);
-            if(exists) return alert("⚠️ اسم المستخدم هذا موجود بالفعل!");
-
             let l=[]; document.querySelectorAll("#u-lines-check input:checked").forEach(c=>l.push(c.value));
             let mRegs=[]; document.querySelectorAll("#u-mgr-regions input:checked").forEach(c=>mRegs.push(c.value));
             if(u&&p&&l.length>0){ 
@@ -1041,7 +1026,7 @@
                     isLineManager:document.getElementById("perm-linemanager").checked,
                     manageRegions: mRegs
                 };
-                showLoader(true);
+                showLoader(true, "جاري الحفظ...");
                 if(id){ await updateDoc(doc(db,"users",id), data); cancelEditUser(); }
                 else { await addDoc(collection(db,"users"), data); }
                 alert("تم الحفظ"); showLoader(false);
@@ -1064,16 +1049,8 @@
         }
 
         window.addSysItem = async function() {
-            let t=document.getElementById("sys-type").value; let v=document.getElementById("sys-val").value.trim();
-            
-            if(v){ 
-                // Prevent Duplicates in Settings
-                if(globalSettings[t].includes(v)) return alert("⚠️ هذا العنصر موجود مسبقاً!");
-
-                let d={...globalSettings}; d[t].push(v); 
-                await setDoc(doc(db,"settings","config"), d); 
-                document.getElementById("sys-val").value=""; 
-            }
+            let t=document.getElementById("sys-type").value; let v=document.getElementById("sys-val").value;
+            if(v){ let d={...globalSettings}; d[t].push(v); await setDoc(doc(db,"settings","config"), d); document.getElementById("sys-val").value=""; }
         }
         window.delSet = async function(t,v) { if(confirm("حذف؟")){ let d={...globalSettings}; d[t]=d[t].filter(x=>x!==v); await setDoc(doc(db,"settings","config"), d); } }
         window.saveLogo = async function() {
