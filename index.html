@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V33 (Full Permissions)</title>
+    <title>Safelife - V32 (High Speed)</title>
     
     <!-- Fonts & Libraries -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -164,10 +164,12 @@
         <div id="page-products" class="page-section">
             <div class="client-section">
                 <label style="font-size:12px; color:#777;">بيانات العميل:</label>
-                <input type="text" id="current-client" class="client-input" list="clients-datalist" placeholder="اكتب أول حرفين من اسم العميل..." oninput="searchClients(this.value)">
+                
+                <!-- INPUT CHANGED: No datalist overload, uses JS event -->
+                <input type="text" id="current-client" class="client-input" list="clients-datalist" placeholder="اكتب اسم العميل للبحث..." oninput="searchClients(this.value)">
                 <datalist id="clients-datalist"></datalist>
                 
-                <small id="client-search-hint" style="display:block; color:#666; font-size:10px; margin-bottom:5px;">🔍 اكتب للبحث في قاعدة العملاء</small>
+                <small id="client-search-hint" style="display:block; color:#666; font-size:10px; margin-bottom:5px;">🔍 اكتب حرفين أو أكثر للبحث في العملاء</small>
 
                 <input type="text" id="manual-location" class="client-input" placeholder="وصف العنوان (مثلاً: بجوار المسجد)...">
                 <textarea id="order-notes" class="client-input" rows="1" placeholder="ملاحظات هامة..."></textarea>
@@ -261,7 +263,7 @@
                 </div>
             </div>
 
-            <!-- Maintenance Tools -->
+            <!-- System Maintenance -->
             <div class="admin-panel" style="border: 2px solid orange;">
                 <h4 style="color:orange;">⚠️ أدوات صيانة النظام (التنظيف)</h4>
                 <p style="font-size:11px; color:#555;">استخدم هذه الأزرار لحذف البيانات المكررة تلقائياً.</p>
@@ -287,8 +289,6 @@
                 </div>
                 <div id="sys-lists-container" style="margin-top:5px; font-size:12px;"></div>
             </div>
-            
-            <!-- User Form (RESTORED ALL PERMISSIONS) -->
             <div class="admin-panel" id="user-form-panel">
                 <h4 id="user-form-title">إضافة / تعديل مستخدم</h4>
                 <input type="hidden" id="edit-user-id">
@@ -296,17 +296,14 @@
                 <input type="text" id="u-pass" placeholder="كلمة المرور">
                 <input type="text" id="u-job" placeholder="المسمى الوظيفي">
                 <label style="font-size:12px;">المنطقة:</label><select id="u-reg-select"></select>
-                
-                <label style="font-size:12px; color:var(--main); font-weight:bold; margin-top:5px; display:block;">اللاينات:</label>
+                <label style="font-size:12px; color:var(--main); font-weight:bold;">اللاينات:</label>
                 <div class="check-group" id="u-lines-check"></div>
-                
                 <div style="background:#f0f0f0; padding:8px; border-radius:5px; margin-top:5px;">
                     <label style="display:block;"><input type="checkbox" id="perm-admin"> <b>أدمن كامل</b></label>
                     <label style="display:block;"><input type="checkbox" id="perm-price"> <b>تعديل المنتجات</b></label>
                     <label style="display:block;"><input type="checkbox" id="perm-report"> <b>صلاحية التقارير</b></label>
                     <label style="display:block;"><input type="checkbox" id="perm-deliver"> <b>مندوب توزيع</b></label>
                     <label style="display:block;"><input type="checkbox" id="perm-archive"> <b>مشاهدة الأرشيف</b></label>
-                    <label style="display:block; color:green; font-weight:bold;"><input type="checkbox" id="perm-stock"> 📦 صلاحية دفتر الجرد</label>
                     <hr>
                     <label style="display:block; color:var(--sec); font-weight:bold;"><input type="checkbox" id="perm-linemanager" onchange="toggleLineMgr()"> 👔 مدير لاين (إشراف)</label>
                     <div id="mgr-regions-box" style="display:none; margin-top:5px; border-top:1px dashed #ccc; padding-top:5px;">
@@ -334,7 +331,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where, writeBatch, limit } 
+        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where, writeBatch, limit, startAt, endAt, orderBy } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -422,13 +419,14 @@
         function listenToOrders(){ onSnapshot(collection(db,"orders"), s=>{ globalOrders=[]; s.forEach(d=>globalOrders.push({...d.data(),id:d.id})); updateDashboard(); renderOrders(); }); }
         function listenToUsers(){ onSnapshot(collection(db,"users"), s=>{ globalUsers=[]; s.forEach(d=>globalUsers.push({...d.data(),id:d.id})); renderUsersTable(); }); }
         
-        // --- OPTIMIZED SEARCH CLIENTS (High Performance) ---
+        // --- OPTIMIZED SEARCH CLIENTS (NO LOADING ALL) ---
         window.searchClients = async function(val) {
             let dl = document.getElementById("clients-datalist");
             dl.innerHTML = "";
             if(!val || val.length < 2) return;
 
             try {
+                // Firestore query: name >= val AND name <= val + '\uf8ff' (Search prefix)
                 const q = query(collection(db, "clients"), 
                     where('name', '>=', val), 
                     where('name', '<=', val + '\uf8ff'),
@@ -987,7 +985,6 @@
             document.getElementById("perm-report").checked = u.canReport||false;
             document.getElementById("perm-deliver").checked = u.canDeliver||false;
             document.getElementById("perm-archive").checked = u.canArchive||false;
-            document.getElementById("perm-stock").checked = u.canStock||false; // Restored Stock
             document.getElementById("perm-linemanager").checked = u.isLineManager||false;
             toggleLineMgr();
             let mgrRegs = u.manageRegions || [];
@@ -1014,16 +1011,8 @@
 
         window.saveUser = async function() {
             let id = document.getElementById("edit-user-id").value;
-            let u=document.getElementById("u-name").value.trim();
-            let p=document.getElementById("u-pass").value, r=document.getElementById("u-reg-select").value;
+            let u=document.getElementById("u-name").value, p=document.getElementById("u-pass").value, r=document.getElementById("u-reg-select").value;
             let j=document.getElementById("u-job").value;
-            
-            if(!u) return alert("اسم المستخدم مطلوب");
-
-            // Prevent Duplicate User Name
-            let exists = globalUsers.some(user => user.user === u && user.id !== id);
-            if(exists) return alert("⚠️ اسم المستخدم هذا موجود بالفعل!");
-
             let l=[]; document.querySelectorAll("#u-lines-check input:checked").forEach(c=>l.push(c.value));
             let mRegs=[]; document.querySelectorAll("#u-mgr-regions input:checked").forEach(c=>mRegs.push(c.value));
             if(u&&p&&l.length>0){ 
@@ -1034,7 +1023,6 @@
                     canReport:document.getElementById("perm-report").checked, 
                     canDeliver:document.getElementById("perm-deliver").checked,
                     canArchive:document.getElementById("perm-archive").checked,
-                    canStock: document.getElementById("perm-stock").checked,
                     isLineManager:document.getElementById("perm-linemanager").checked,
                     manageRegions: mRegs
                 };
@@ -1042,7 +1030,7 @@
                 if(id){ await updateDoc(doc(db,"users",id), data); cancelEditUser(); }
                 else { await addDoc(collection(db,"users"), data); }
                 alert("تم الحفظ"); showLoader(false);
-            } else { alert("بيانات ناقصة (اختر لاين واحد على الأقل)"); }
+            } else { alert("بيانات ناقصة"); }
         }
         window.delUser=async function(id){ if(confirm("حذف؟")) await deleteDoc(doc(db,"users",id)); }
 
@@ -1050,8 +1038,6 @@
             let c=document.getElementById("sys-lists-container");
             c.innerHTML = `<b>Lines:</b> `+(globalSettings.lines||[]).map(x=>`<span class="list-item" style="background:#ffeeba">${x} <span class="tag-del" onclick="delSet('lines','${x}')">x</span></span>`).join("") +
             `<br><b>Regs:</b> `+(globalSettings.regs||[]).map(x=>`<span class="list-item">${x} <span class="tag-del" onclick="delSet('regs','${x}')">x</span></span>`).join("");
-            
-            // Render Lines Checkbox for User
             let uL=document.getElementById("u-lines-check");
             uL.innerHTML=`<label><input type="checkbox" value="all"> كل اللاينات</label><br>`;
             (globalSettings.lines||[]).forEach(l=>uL.innerHTML+=`<label style="margin-left:10px"><input type="checkbox" value="${l}"> ${l}</label>`);
@@ -1063,16 +1049,8 @@
         }
 
         window.addSysItem = async function() {
-            let t=document.getElementById("sys-type").value; let v=document.getElementById("sys-val").value.trim();
-            
-            if(v){ 
-                // Prevent Duplicates in Settings
-                if(globalSettings[t].includes(v)) return alert("⚠️ هذا العنصر موجود مسبقاً!");
-
-                let d={...globalSettings}; d[t].push(v); 
-                await setDoc(doc(db,"settings","config"), d); 
-                document.getElementById("sys-val").value=""; 
-            }
+            let t=document.getElementById("sys-type").value; let v=document.getElementById("sys-val").value;
+            if(v){ let d={...globalSettings}; d[t].push(v); await setDoc(doc(db,"settings","config"), d); document.getElementById("sys-val").value=""; }
         }
         window.delSet = async function(t,v) { if(confirm("حذف؟")){ let d={...globalSettings}; d[t]=d[t].filter(x=>x!==v); await setDoc(doc(db,"settings","config"), d); } }
         window.saveLogo = async function() {
