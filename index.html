@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V35 (Smart Inventory & Discount)</title>
+    <title>Safelife - V36 (Master Fixed)</title>
     
     <!-- Fonts & Libraries -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,6 +57,12 @@
         .add-btn { flex: 1; background: var(--main); color: white; border: none; border-radius: 5px; height: 35px; font-size: 12px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
         .add-btn:active { transform: scale(0.95); background: var(--green); }
 
+        /* Inventory (RESTORED) */
+        .inv-row { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; border-bottom: 1px solid #eee; }
+        .inv-row:last-child { border-bottom: none; }
+        .inv-input { width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; text-align: center; font-weight: bold; background: #fdfdfd; }
+        .inv-input:focus { border-color: var(--green); background: #e8f5e9; }
+
         /* Orders & Reports */
         .order-card { background: white; padding: 12px; border-radius: 10px; margin-bottom: 8px; border-right: 4px solid var(--green); box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; }
         .order-card.done { border-right-color: #aaa; opacity: 0.8; background: #f9f9f9; }
@@ -92,6 +98,7 @@
         button { cursor: pointer; }
         .btn-red { background: #e74c3c; color: white; border:none; border-radius:5px; padding:5px 10px; }
         .btn-green { background: var(--green); color: white; border:none; border-radius:5px; padding:8px; }
+        .btn-blue { background: var(--main); color: white; border:none; border-radius:5px; padding:8px; }
         .btn-ghost { background: #eee; color: #333; border:none; border-radius:5px; padding:5px; }
         .btn-map { background: #4285F4; color: white; border:none; border-radius:10px; padding:10px 20px; margin: 5px; width: 100%; }
         .btn-warning { background: #f39c12; color: white; border:none; border-radius:5px; padding:8px; width:100%; margin-top:5px; }
@@ -163,6 +170,19 @@
             </div>
         </div>
 
+        <!-- Inventory (RESTORED) -->
+        <div id="page-inventory" class="page-section">
+            <h3 style="color:var(--main);">📦 إدارة المخزون (الجرد)</h3>
+            <div class="admin-panel" style="background:#e8f5e9; border:1px solid #a5d6a7;">
+                <label style="font-weight:bold;">حدد اللاين المراد جرده:</label>
+                <select id="inv-filter-line" onchange="renderInventory()" style="margin-top:5px; font-weight:bold;">
+                    <option value="">-- اختر اللاين --</option>
+                </select>
+                <small style="display:block; color:#555; margin-top:5px;">⚠️ يتم حفظ الكمية تلقائياً عند الكتابة.</small>
+            </div>
+            <div id="inventory-container" style="background:white; border-radius:10px; overflow:hidden; box-shadow:0 2px 5px rgba(0,0,0,0.05);"></div>
+        </div>
+
         <!-- Products -->
         <div id="page-products" class="page-section">
             <div class="client-section">
@@ -171,7 +191,7 @@
                 <datalist id="clients-datalist"></datalist>
                 <small id="client-search-hint" style="display:block; color:#666; font-size:10px; margin-bottom:5px;">🔍 اكتب حرفين للبحث في 5000+ عميل</small>
 
-                <!-- DISCOUNT FIELD (NEW V35) -->
+                <!-- DISCOUNT BOX -->
                 <div id="discount-box" style="display:none; margin-bottom:5px;">
                     <label style="font-size:11px; color:#d32f2f; font-weight:bold;">نسبة الخصم (%):</label>
                     <input type="number" id="order-discount" class="client-input" placeholder="0" value="0" style="border:1px solid red;">
@@ -214,16 +234,9 @@
         <div id="page-reports" class="page-section">
             <h3>📊 تقارير التوزيع والجرد</h3>
             <div class="admin-panel">
-                <!-- Date Filters (NEW V35) -->
                 <div class="date-filter-box">
-                    <div>
-                        <label style="font-size:10px;">من:</label>
-                        <input type="date" id="rep-start-date">
-                    </div>
-                    <div>
-                        <label style="font-size:10px;">إلى:</label>
-                        <input type="date" id="rep-end-date">
-                    </div>
+                    <div><label style="font-size:10px;">من:</label><input type="date" id="rep-start-date"></div>
+                    <div><label style="font-size:10px;">إلى:</label><input type="date" id="rep-end-date"></div>
                 </div>
 
                 <div style="margin:10px 0; padding:10px; background:#e8f5e9; border-radius:5px; border:1px solid #c8e6c9;">
@@ -285,10 +298,13 @@
                 </div>
             </div>
 
+            <!-- CLEANER TOOLS (RESTORED) -->
             <div class="admin-panel" style="border: 2px solid orange;">
-                <h4 style="color:orange;">⚠️ أدوات الصيانة</h4>
+                <h4 style="color:orange;">⚠️ أدوات الصيانة (حذف التكرار)</h4>
+                <div id="cleanup-status" style="margin:5px 0; color:red; font-weight:bold; font-size:12px;"></div>
                 <button class="btn-warning" onclick="cleanDuplicateClients()">🧹 تنظيف تكرار العملاء</button>
                 <button class="btn-warning" onclick="cleanDuplicateProducts()">🧹 تنظيف تكرار المنتجات</button>
+                <button class="btn-warning" onclick="cleanDuplicateSettings()">🧹 تنظيف تكرار القوائم</button>
             </div>
 
             <div class="admin-panel">
@@ -339,6 +355,7 @@
             <button onclick="nav('dashboard')" id="btn-dashboard"><span>🏠</span></button>
             <button onclick="nav('products')" id="btn-products"><span>💊</span></button>
             <button onclick="nav('orders')" id="btn-orders"><span>📝</span></button>
+            <button onclick="nav('inventory')" id="btn-inventory" style="display:none;"><span>📦</span></button>
             <button onclick="nav('reports')" id="btn-reports" style="display:none;"><span>📊</span></button>
             <button onclick="nav('admin')" id="btn-admin" style="display:none;"><span>⚙️</span></button>
         </div>
@@ -417,12 +434,15 @@
             let canSeeReports = user.isAdmin || user.canReport;
             document.getElementById("btn-reports").style.display = canSeeReports ? "flex" : "none";
             
+            let canSeeInventory = user.isAdmin || user.isLineManager;
+            document.getElementById("btn-inventory").style.display = canSeeInventory ? "flex" : "none";
+
             let canArchive = user.isAdmin || user.canArchive;
             document.getElementById("btn-history-tab").style.display = canArchive ? "block" : "none";
 
             document.getElementById("btn-orders").style.display = isVisitor ? "none" : "flex";
 
-            // SHOW DISCOUNT FIELD IF PERMITTED
+            // V35 Discount Field
             if(user.canDiscount || user.isAdmin) {
                 document.getElementById("discount-box").style.display = "block";
             }
@@ -439,6 +459,7 @@
         function listenToOrders(){ onSnapshot(collection(db,"orders"), s=>{ globalOrders=[]; s.forEach(d=>globalOrders.push({...d.data(),id:d.id})); updateDashboard(); renderOrders(); }); }
         function listenToUsers(){ onSnapshot(collection(db,"users"), s=>{ globalUsers=[]; s.forEach(d=>globalUsers.push({...d.data(),id:d.id})); renderUsersTable(); }); }
         
+        // --- SEARCH CLIENTS ---
         window.searchClients = async function(val) {
             let dl = document.getElementById("clients-datalist");
             dl.innerHTML = "";
@@ -454,13 +475,20 @@
             if(globalSettings.logo) {
                 document.getElementById("app-logo-login").src = globalSettings.logo;
                 document.getElementById("app-logo-header").src = globalSettings.logo;
+                document.getElementById("app-logo-print").src = globalSettings.logo;
             }
             let lHTML=`<div class="filter-chip active" onclick="filt('line','all',this)">الكل</div>` + (globalSettings.lines||[]).map(l=>`<div class="filter-chip" onclick="filt('line','${l}',this)">${l}</div>`).join("");
             document.getElementById("line-filters").innerHTML = lHTML;
 
             let npCat=document.getElementById("np-cat"), npLine=document.getElementById("np-salesline"), uReg=document.getElementById("u-reg-select");
+            let invLine = document.getElementById("inv-filter-line"); // RESTORED
+
             npCat.innerHTML=(globalSettings.cats||[]).map(c=>`<option value="${c}">${c}</option>`).join("");
-            npLine.innerHTML=(globalSettings.lines||[]).map(l=>`<option value="${l}">${l}</option>`).join("");
+            
+            let linesOpts = (globalSettings.lines||[]).map(l=>`<option value="${l}">${l}</option>`).join("");
+            npLine.innerHTML = linesOpts;
+            if(invLine) invLine.innerHTML = `<option value="">-- اختر اللاين --</option>` + linesOpts; 
+
             uReg.innerHTML=(globalSettings.regs||[]).map(r=>`<option>${r}</option>`).join("");
             
             let repRegs = document.getElementById("report-regions-check");
@@ -519,6 +547,31 @@
             });
         }
 
+        // --- INVENTORY LOGIC (RESTORED) ---
+        window.renderInventory = function() {
+            let line = document.getElementById("inv-filter-line").value;
+            let container = document.getElementById("inventory-container");
+            container.innerHTML = "";
+            if (!line) { container.innerHTML = "<p style='text-align:center; padding:20px; color:#777;'>يرجى اختيار لاين لعرض منتجاته</p>"; return; }
+            let filteredProds = globalProducts.filter(p => p.sLine === line);
+            if (filteredProds.length === 0) { container.innerHTML = "<p style='text-align:center; padding:20px;'>لا توجد منتجات في هذا اللاين</p>"; return; }
+            filteredProds.forEach(p => {
+                let currentStock = p.stock || 0;
+                container.innerHTML += `
+                <div class="inv-row">
+                    <div>
+                        <div style="font-weight:bold; font-size:13px; color:var(--main);">${p.name}</div>
+                        <small style="color:#777;">${p.cat}</small>
+                    </div>
+                    <input type="number" class="inv-input" value="${currentStock}" 
+                        onchange="updateStock('${p.id}', this.value)" placeholder="الكمية">
+                </div>`;
+            });
+        }
+        window.updateStock = async function(prodId, newVal) {
+            try { await updateDoc(doc(db, "products", prodId), { stock: Number(newVal) }); } catch(e) { alert("خطأ في الحفظ"); }
+        }
+
         window.mkOrd = async function(pid) {
             let p = globalProducts.find(x=>x.id===pid);
             let qtyInput = document.getElementById(`qty-${pid}`);
@@ -550,7 +603,7 @@
                     manualLocation: manualLoc, 
                     notes: notes, 
                     user: currentUser.user, region: currentUser.region, 
-                    date: new Date().toLocaleDateString('en-CA'), // ISO format for sort
+                    date: new Date().toLocaleDateString('en-CA'), 
                     time: new Date().toLocaleTimeString(),
                     status: 'pending',
                     geo: loc
@@ -560,7 +613,7 @@
             }
         }
 
-        // --- EXCEL IMPORTS ---
+        // --- EXCEL & CLEANER (RESTORED) ---
         window.importClients = async function() {
             let fileInput = document.getElementById('file-clients');
             if(!fileInput.files.length) return alert("اختر ملف أولاً");
@@ -576,8 +629,8 @@
                     let total = cleanJson.length;
                     if(!confirm(`تم العثور على ${total} عميل. البدء في الرفع؟`)) return;
                     showLoader(true, "جاري الرفع...");
-                    const CHUNK_SIZE = 200; 
-                    let uploaded = 0;
+                    let statusDiv = document.getElementById("upload-status");
+                    const CHUNK_SIZE = 200; let uploaded = 0;
                     for (let i = 0; i < total; i += CHUNK_SIZE) {
                         let chunk = cleanJson.slice(i, i + CHUNK_SIZE);
                         let batch = writeBatch(db);
@@ -588,10 +641,10 @@
                         });
                         await batch.commit();
                         uploaded += chunk.length;
+                        statusDiv.innerHTML = `<b>جاري الرفع: ${uploaded} من ${total}</b>`;
                         await new Promise(r => setTimeout(r, 100)); 
                     }
-                    alert(`✅ تم!`);
-                    fileInput.value = "";
+                    alert(`✅ تم!`); fileInput.value = ""; statusDiv.innerText = "تم الانتهاء.";
                 } catch (err) { alert("خطأ: " + err.message); } finally { showLoader(false); }
             };
             reader.readAsArrayBuffer(file);
@@ -612,8 +665,7 @@
                     let total = cleanJson.length;
                     if(!confirm(`تم العثور على ${total} منتج. رفع؟`)) return;
                     showLoader(true, "جاري رفع المنتجات...");
-                    const CHUNK_SIZE = 200;
-                    let uploaded = 0;
+                    const CHUNK_SIZE = 200; let uploaded = 0;
                     for (let i = 0; i < total; i += CHUNK_SIZE) {
                         let chunk = cleanJson.slice(i, i + CHUNK_SIZE);
                         let batch = writeBatch(db);
@@ -629,34 +681,37 @@
                         uploaded += chunk.length;
                         await new Promise(r => setTimeout(r, 100));
                     }
-                    alert("✅ تم!");
-                    fileInput.value = "";
+                    alert("✅ تم!"); fileInput.value = "";
                 } catch (err) { alert("خطأ: " + err.message); } finally { showLoader(false); }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        // --- CLEANUP ---
         window.cleanDuplicateClients = async function() {
-            if(!confirm("حذف تكرار العملاء؟")) return;
+            if(!confirm("⚠️ تنبيه: سيتم حذف العملاء المكررين.")) return;
             showLoader(true, "جاري الفحص...");
             try {
                 const snap = await getDocs(collection(db, "clients"));
                 let seen = {}; let duplicates = [];
                 snap.forEach(doc => { let name = doc.data().name; if(seen[name]) duplicates.push(doc.ref); else seen[name] = true; });
-                const CHUNK = 300;
-                for(let i=0; i<duplicates.length; i+=CHUNK) {
-                    let batch = writeBatch(db);
-                    duplicates.slice(i, i+CHUNK).forEach(ref => batch.delete(ref));
-                    await batch.commit();
-                    await new Promise(r => setTimeout(r, 200)); 
+                if(duplicates.length === 0) { alert("✅ لا توجد تكرارات."); } 
+                else {
+                    const CHUNK = 300; let statusDiv = document.getElementById("cleanup-status");
+                    for(let i=0; i<duplicates.length; i+=CHUNK) {
+                        let batch = writeBatch(db);
+                        duplicates.slice(i, i+CHUNK).forEach(ref => batch.delete(ref));
+                        await batch.commit();
+                        statusDiv.innerText = `حذف ${i} من ${duplicates.length}`;
+                        await new Promise(r => setTimeout(r, 200)); 
+                    }
+                    alert(`✅ تم حذف ${duplicates.length} مكرر.`);
                 }
-                alert(`✅ تم حذف ${duplicates.length} مكرر.`);
             } catch(e) { alert("خطأ: " + e.message); }
             showLoader(false);
         }
+
         window.cleanDuplicateProducts = async function() {
-            if(!confirm("حذف تكرار المنتجات؟")) return;
+            if(!confirm("مسح المنتجات المكررة؟")) return;
             showLoader(true, "جاري الفحص...");
             try {
                 const snap = await getDocs(collection(db, "products"));
@@ -674,12 +729,18 @@
             showLoader(false);
         }
 
+        window.cleanDuplicateSettings = async function() {
+            if(!confirm("تنظيف القوائم؟")) return;
+            let d = {...globalSettings};
+            d.cats = [...new Set(d.cats)]; d.lines = [...new Set(d.lines)]; d.regs = [...new Set(d.regs)];
+            await setDoc(doc(db,"settings","config"), d); alert("تم.");
+        }
+
         window.addSingleClient = async function() {
             let name = document.getElementById("single-client-name").value.trim();
             if(!name) return alert("اكتب الاسم");
             await addDoc(collection(db, "clients"), { name: name });
-            alert("✅ تمت الإضافة");
-            document.getElementById("single-client-name").value = "";
+            alert("✅ تمت الإضافة"); document.getElementById("single-client-name").value = "";
         }
 
         // --- CRUD ---
