@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V32 (High Speed)</title>
+    <title>Safelife - V33 (Inventory System)</title>
     
     <!-- Fonts & Libraries -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,6 +57,12 @@
         .add-btn { flex: 1; background: var(--main); color: white; border: none; border-radius: 5px; height: 35px; font-size: 12px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
         .add-btn:active { transform: scale(0.95); background: var(--green); }
 
+        /* Inventory (NEW) */
+        .inv-row { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; border-bottom: 1px solid #eee; }
+        .inv-row:last-child { border-bottom: none; }
+        .inv-input { width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; text-align: center; font-weight: bold; background: #fdfdfd; }
+        .inv-input:focus { border-color: var(--green); background: #e8f5e9; }
+
         /* Orders & Reports */
         .order-card { background: white; padding: 12px; border-radius: 10px; margin-bottom: 8px; border-right: 4px solid var(--green); box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; }
         .order-card.done { border-right-color: #aaa; opacity: 0.8; background: #f9f9f9; }
@@ -79,7 +85,6 @@
         .check-group { text-align: right; max-height: 120px; overflow-y: auto; border: 1px solid #eee; padding: 8px; margin-bottom: 8px; border-radius: 5px; background: #fff; }
         .user-card { background: white; padding: 10px; border-radius: 8px; margin-bottom: 5px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         
-        /* Client Section */
         .client-section { background: white; padding: 10px; border-radius: 10px; margin: 10px; border: 2px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .client-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: 'Cairo'; font-weight: bold; margin-bottom: 5px; }
         
@@ -160,21 +165,30 @@
             </div>
         </div>
 
+        <!-- Inventory (NEW) -->
+        <div id="page-inventory" class="page-section">
+            <h3 style="color:var(--main);">📦 إدارة المخزون (الجرد)</h3>
+            <div class="admin-panel" style="background:#e8f5e9; border:1px solid #a5d6a7;">
+                <label style="font-weight:bold;">حدد اللاين المراد جرده:</label>
+                <select id="inv-filter-line" onchange="renderInventory()" style="margin-top:5px; font-weight:bold;">
+                    <option value="">-- اختر اللاين --</option>
+                </select>
+                <small style="display:block; color:#555; margin-top:5px;">⚠️ يتم حفظ الكمية تلقائياً عند الكتابة.</small>
+            </div>
+            <div id="inventory-container" style="background:white; border-radius:10px; overflow:hidden; box-shadow:0 2px 5px rgba(0,0,0,0.05);"></div>
+        </div>
+
         <!-- Products -->
         <div id="page-products" class="page-section">
             <div class="client-section">
                 <label style="font-size:12px; color:#777;">بيانات العميل:</label>
-                
-                <!-- INPUT CHANGED: No datalist overload, uses JS event -->
-                <input type="text" id="current-client" class="client-input" list="clients-datalist" placeholder="اكتب اسم العميل للبحث..." oninput="searchClients(this.value)">
+                <input type="text" id="current-client" class="client-input" list="clients-datalist" placeholder="اكتب أول حرفين من اسم العميل..." oninput="searchClients(this.value)">
                 <datalist id="clients-datalist"></datalist>
-                
-                <small id="client-search-hint" style="display:block; color:#666; font-size:10px; margin-bottom:5px;">🔍 اكتب حرفين أو أكثر للبحث في العملاء</small>
+                <small id="client-search-hint" style="display:block; color:#666; font-size:10px; margin-bottom:5px;">🔍 اكتب حرفين للبحث في 5000+ عميل</small>
 
-                <input type="text" id="manual-location" class="client-input" placeholder="وصف العنوان (مثلاً: بجوار المسجد)...">
+                <input type="text" id="manual-location" class="client-input" placeholder="وصف العنوان...">
                 <textarea id="order-notes" class="client-input" rows="1" placeholder="ملاحظات هامة..."></textarea>
-                
-                <small style="color:blue; font-size:10px;">📍 سيتم حفظ GPS تلقائياً</small>
+                <small style="color:blue; font-size:10px;">📍 حفظ GPS تلقائي</small>
             </div>
 
             <div id="admin-tools" class="admin-panel" style="display:none; border-color:var(--accent);">
@@ -212,19 +226,18 @@
                 <div style="margin-bottom:10px; padding:10px; background:#e8f5e9; border-radius:5px; border:1px solid #c8e6c9;">
                     <label style="font-weight:bold; color:var(--main); cursor:pointer;">
                         <input type="checkbox" id="chk-group-client" onchange="renderReport()"> 
-                        📁 تجميع حسب العميل (دمج طلبات المندوبين)
+                        📁 تجميع حسب العميل
                     </label>
                 </div>
 
-                <label style="font-weight:bold; font-size:13px;">حدد المناطق للتجميع:</label>
+                <label style="font-weight:bold; font-size:13px;">حدد المناطق:</label>
                 <div id="report-regions-check" class="regions-grid"></div>
                 
                 <div style="text-align:center; margin-top:15px; display:flex; flex-direction:column; gap:8px;">
-                    <button onclick="openRouteMap()" class="btn-map" id="btn-route-map" style="display:none;">🗺️ رسم خط سير التوزيع (Google Maps)</button>
-                    
+                    <button onclick="openRouteMap()" class="btn-map" id="btn-route-map" style="display:none;">🗺️ رسم خط سير (Google Maps)</button>
                     <div style="display:flex; gap:10px; justify-content:center;">
-                        <button onclick="renderReport()" style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:10px; flex:1;">عرض التقرير</button>
-                        <button onclick="downloadPDF()" style="background:#e74c3c; color:white; border:none; padding:10px 20px; border-radius:10px; flex:1;">تحميل PDF</button>
+                        <button onclick="renderReport()" style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:10px; flex:1;">عرض</button>
+                        <button onclick="downloadPDF()" style="background:#e74c3c; color:white; border:none; padding:10px 20px; border-radius:10px; flex:1;">PDF</button>
                     </div>
                 </div>
             </div>
@@ -246,16 +259,13 @@
         <div id="page-admin" class="page-section">
             <h3>⚙️ الإعدادات</h3>
             
-            <!-- Import Clients -->
             <div class="admin-panel">
                 <h4 style="color:var(--green);">📥 استيراد العملاء (Excel)</h4>
-                <p style="font-size:12px; color:#666;">ارفع ملف إكسيل (أول عمود = الأسماء). يتحمل حتى 5000 عميل.</p>
                 <div style="display:flex; gap:5px;">
                     <input type="file" id="file-clients" accept=".xlsx, .xls, .csv">
-                    <button class="btn-green" onclick="importClients()">بدء الرفع</button>
+                    <button class="btn-green" onclick="importClients()">رفع</button>
                 </div>
                 <div id="upload-status" style="margin-top:5px; color:blue; font-size:12px;"></div>
-                
                 <hr style="margin:10px 0;">
                 <div style="display:flex; gap:5px;">
                     <input type="text" id="single-client-name" placeholder="اسم عميل جديد">
@@ -263,23 +273,12 @@
                 </div>
             </div>
 
-            <!-- System Maintenance -->
             <div class="admin-panel" style="border: 2px solid orange;">
-                <h4 style="color:orange;">⚠️ أدوات صيانة النظام (التنظيف)</h4>
-                <p style="font-size:11px; color:#555;">استخدم هذه الأزرار لحذف البيانات المكررة تلقائياً.</p>
-                <div id="cleanup-status" style="margin:5px 0; color:red; font-weight:bold; font-size:12px;"></div>
+                <h4 style="color:orange;">⚠️ أدوات الصيانة</h4>
                 <button class="btn-warning" onclick="cleanDuplicateClients()">🧹 تنظيف تكرار العملاء</button>
                 <button class="btn-warning" onclick="cleanDuplicateProducts()">🧹 تنظيف تكرار المنتجات</button>
-                <button class="btn-warning" onclick="cleanDuplicateSettings()">🧹 تنظيف تكرار القوائم</button>
             </div>
 
-            <div class="admin-panel">
-                <h4>شعار النظام</h4>
-                <div style="display:flex; gap:5px;">
-                    <input type="text" id="sys-logo-url" placeholder="رابط الصورة">
-                    <button class="btn-green" onclick="saveLogo()">حفظ</button>
-                </div>
-            </div>
             <div class="admin-panel">
                 <h4>القوائم</h4>
                 <div style="display:flex; gap:5px;">
@@ -289,12 +288,12 @@
                 </div>
                 <div id="sys-lists-container" style="margin-top:5px; font-size:12px;"></div>
             </div>
+            
             <div class="admin-panel" id="user-form-panel">
                 <h4 id="user-form-title">إضافة / تعديل مستخدم</h4>
                 <input type="hidden" id="edit-user-id">
                 <input type="text" id="u-name" placeholder="اسم المستخدم">
                 <input type="text" id="u-pass" placeholder="كلمة المرور">
-                <input type="text" id="u-job" placeholder="المسمى الوظيفي">
                 <label style="font-size:12px;">المنطقة:</label><select id="u-reg-select"></select>
                 <label style="font-size:12px; color:var(--main); font-weight:bold;">اللاينات:</label>
                 <div class="check-group" id="u-lines-check"></div>
@@ -303,7 +302,6 @@
                     <label style="display:block;"><input type="checkbox" id="perm-price"> <b>تعديل المنتجات</b></label>
                     <label style="display:block;"><input type="checkbox" id="perm-report"> <b>صلاحية التقارير</b></label>
                     <label style="display:block;"><input type="checkbox" id="perm-deliver"> <b>مندوب توزيع</b></label>
-                    <label style="display:block;"><input type="checkbox" id="perm-archive"> <b>مشاهدة الأرشيف</b></label>
                     <hr>
                     <label style="display:block; color:var(--sec); font-weight:bold;"><input type="checkbox" id="perm-linemanager" onchange="toggleLineMgr()"> 👔 مدير لاين (إشراف)</label>
                     <div id="mgr-regions-box" style="display:none; margin-top:5px; border-top:1px dashed #ccc; padding-top:5px;">
@@ -312,7 +310,7 @@
                     </div>
                 </div>
                 <div style="display:flex; gap:5px; margin-top:10px;">
-                    <button class="btn-green" style="flex:2" onclick="saveUser()" id="btn-save-user">حفظ المستخدم</button>
+                    <button class="btn-green" style="flex:2" onclick="saveUser()" id="btn-save-user">حفظ</button>
                     <button class="btn-ghost" style="flex:1; display:none;" onclick="cancelEditUser()" id="btn-cancel-user">إلغاء</button>
                 </div>
             </div>
@@ -321,17 +319,18 @@
         </div>
 
         <div class="bottom-nav">
-            <button onclick="nav('dashboard')" id="btn-dashboard"><span>🏠</span>الرئيسية</button>
-            <button onclick="nav('products')" id="btn-products"><span>💊</span>المنتجات</button>
-            <button onclick="nav('orders')" id="btn-orders"><span>📝</span>الطلبات</button>
-            <button onclick="nav('reports')" id="btn-reports" style="display:none;"><span>📊</span>التقارير</button>
-            <button onclick="nav('admin')" id="btn-admin" style="display:none;"><span>⚙️</span>الإعدادات</button>
+            <button onclick="nav('dashboard')" id="btn-dashboard"><span>🏠</span></button>
+            <button onclick="nav('products')" id="btn-products"><span>💊</span></button>
+            <button onclick="nav('orders')" id="btn-orders"><span>📝</span></button>
+            <button onclick="nav('inventory')" id="btn-inventory" style="display:none;"><span>📦</span></button>
+            <button onclick="nav('reports')" id="btn-reports" style="display:none;"><span>📊</span></button>
+            <button onclick="nav('admin')" id="btn-admin" style="display:none;"><span>⚙️</span></button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where, writeBatch, limit, startAt, endAt, orderBy } 
+        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where, writeBatch, limit } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -399,15 +398,19 @@
             document.getElementById("btn-admin").style.display = user.isAdmin ? "flex" : "none";
             document.getElementById("admin-tools").style.display = (user.isAdmin || user.canPrice) ? "block" : "none";
             
+            // Permissions
             let canSeeReports = user.isAdmin || user.canReport;
             document.getElementById("btn-reports").style.display = canSeeReports ? "flex" : "none";
             
+            let canSeeInventory = user.isAdmin || user.isLineManager;
+            document.getElementById("btn-inventory").style.display = canSeeInventory ? "flex" : "none";
+
             let canArchive = user.isAdmin || user.canArchive;
             document.getElementById("btn-history-tab").style.display = canArchive ? "block" : "none";
 
             document.getElementById("btn-orders").style.display = isVisitor ? "none" : "flex";
 
-            listenToProducts(); listenToOrders();
+            listenToProducts(); listenToOrders(); 
             if(user.isAdmin) listenToUsers();
             
             nav('dashboard');
@@ -419,14 +422,13 @@
         function listenToOrders(){ onSnapshot(collection(db,"orders"), s=>{ globalOrders=[]; s.forEach(d=>globalOrders.push({...d.data(),id:d.id})); updateDashboard(); renderOrders(); }); }
         function listenToUsers(){ onSnapshot(collection(db,"users"), s=>{ globalUsers=[]; s.forEach(d=>globalUsers.push({...d.data(),id:d.id})); renderUsersTable(); }); }
         
-        // --- OPTIMIZED SEARCH CLIENTS (NO LOADING ALL) ---
+        // --- SEARCH CLIENTS (V32 Optimized) ---
         window.searchClients = async function(val) {
             let dl = document.getElementById("clients-datalist");
             dl.innerHTML = "";
             if(!val || val.length < 2) return;
 
             try {
-                // Firestore query: name >= val AND name <= val + '\uf8ff' (Search prefix)
                 const q = query(collection(db, "clients"), 
                     where('name', '>=', val), 
                     where('name', '<=', val + '\uf8ff'),
@@ -443,14 +445,19 @@
             if(globalSettings.logo) {
                 document.getElementById("app-logo-login").src = globalSettings.logo;
                 document.getElementById("app-logo-header").src = globalSettings.logo;
-                document.getElementById("app-logo-print").src = globalSettings.logo;
             }
             let lHTML=`<div class="filter-chip active" onclick="filt('line','all',this)">الكل</div>` + (globalSettings.lines||[]).map(l=>`<div class="filter-chip" onclick="filt('line','${l}',this)">${l}</div>`).join("");
             document.getElementById("line-filters").innerHTML = lHTML;
 
             let npCat=document.getElementById("np-cat"), npLine=document.getElementById("np-salesline"), uReg=document.getElementById("u-reg-select");
+            let invLine = document.getElementById("inv-filter-line"); // For Inventory Page
+
             npCat.innerHTML=(globalSettings.cats||[]).map(c=>`<option value="${c}">${c}</option>`).join("");
-            npLine.innerHTML=(globalSettings.lines||[]).map(l=>`<option value="${l}">${l}</option>`).join("");
+            
+            let linesOpts = (globalSettings.lines||[]).map(l=>`<option value="${l}">${l}</option>`).join("");
+            npLine.innerHTML = linesOpts;
+            invLine.innerHTML = `<option value="">-- اختر اللاين --</option>` + linesOpts; // Populate Inventory Filter
+
             uReg.innerHTML=(globalSettings.regs||[]).map(r=>`<option>${r}</option>`).join("");
             
             let repRegs = document.getElementById("report-regions-check");
@@ -504,6 +511,101 @@
             });
         }
 
+        // --- INVENTORY LOGIC (V33) ---
+        window.renderInventory = function() {
+            let line = document.getElementById("inv-filter-line").value;
+            let container = document.getElementById("inventory-container");
+            container.innerHTML = "";
+
+            if (!line) {
+                container.innerHTML = "<p style='text-align:center; padding:20px; color:#777;'>يرجى اختيار لاين لعرض منتجاته</p>";
+                return;
+            }
+
+            let filteredProds = globalProducts.filter(p => p.sLine === line);
+            
+            if (filteredProds.length === 0) {
+                container.innerHTML = "<p style='text-align:center; padding:20px;'>لا توجد منتجات في هذا اللاين</p>";
+                return;
+            }
+
+            filteredProds.forEach(p => {
+                let currentStock = p.stock || 0; // Default to 0 if not set
+                container.innerHTML += `
+                <div class="inv-row">
+                    <div>
+                        <div style="font-weight:bold; font-size:13px; color:var(--main);">${p.name}</div>
+                        <small style="color:#777;">${p.cat}</small>
+                    </div>
+                    <input type="number" class="inv-input" value="${currentStock}" 
+                        onchange="updateStock('${p.id}', this.value)" placeholder="الكمية">
+                </div>`;
+            });
+        }
+
+        window.updateStock = async function(prodId, newVal) {
+            try {
+                await updateDoc(doc(db, "products", prodId), { stock: Number(newVal) });
+                // Optional: Show a tiny "Saved" toast or changing border color could be nice
+            } catch(e) {
+                alert("خطأ في الحفظ: " + e.message);
+            }
+        }
+
+        // --- EXCEL IMPORT (Optimized) ---
+        window.importClients = async function() {
+            let fileInput = document.getElementById('file-clients');
+            if(!fileInput.files.length) return alert("اختر ملف أولاً");
+            
+            let file = fileInput.files[0];
+            let reader = new FileReader();
+            
+            reader.onload = async function(e) {
+                try {
+                    let data = new Uint8Array(e.target.result);
+                    let workbook = XLSX.read(data, {type: 'array'});
+                    let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    let json = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                    
+                    let cleanJson = json.filter(row => row[0] && row[0].toString().trim() !== "");
+                    let total = cleanJson.length;
+
+                    if(!confirm(`تم العثور على ${total} عميل. البدء في الرفع؟`)) return;
+
+                    showLoader(true, "جاري الرفع...");
+                    let statusDiv = document.getElementById("upload-status");
+                    
+                    const CHUNK_SIZE = 200; 
+                    let uploaded = 0;
+
+                    for (let i = 0; i < total; i += CHUNK_SIZE) {
+                        let chunk = cleanJson.slice(i, i + CHUNK_SIZE);
+                        let batch = writeBatch(db);
+                        
+                        chunk.forEach(row => {
+                            let name = row[0].toString().trim();
+                            let ref = doc(collection(db, "clients"));
+                            batch.set(ref, { name: name });
+                        });
+
+                        await batch.commit();
+                        uploaded += chunk.length;
+                        statusDiv.innerHTML = `<b>جاري الرفع: ${uploaded} من ${total}</b>`;
+                        await new Promise(r => setTimeout(r, 100)); 
+                    }
+
+                    alert(`✅ تمت العملية بنجاح!`);
+                    fileInput.value = "";
+                    statusDiv.innerText = "تم الانتهاء.";
+                } catch (err) {
+                    alert("حدث خطأ: " + err.message);
+                } finally {
+                    showLoader(false);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
         window.mkOrd = async function(pid) {
             let p = globalProducts.find(x=>x.id===pid);
             let qtyInput = document.getElementById(`qty-${pid}`);
@@ -537,98 +639,29 @@
             }
         }
 
-        // --- Excel Import Logic (Optimized) ---
-        window.importClients = async function() {
-            let fileInput = document.getElementById('file-clients');
-            if(!fileInput.files.length) return alert("اختر ملف أولاً");
-            
-            let file = fileInput.files[0];
-            let reader = new FileReader();
-            
-            reader.onload = async function(e) {
-                try {
-                    let data = new Uint8Array(e.target.result);
-                    let workbook = XLSX.read(data, {type: 'array'});
-                    let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    let json = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
-                    
-                    let cleanJson = json.filter(row => row[0] && row[0].toString().trim() !== "");
-                    let total = cleanJson.length;
-
-                    if(!confirm(`تم العثور على ${total} عميل. البدء في الرفع؟ (يرجى عدم إغلاق الشاشة)`)) return;
-
-                    showLoader(true, "جاري تحليل الملف...");
-                    let statusDiv = document.getElementById("upload-status");
-                    
-                    const CHUNK_SIZE = 200; 
-                    let uploaded = 0;
-                    
-                    for (let i = 0; i < total; i += CHUNK_SIZE) {
-                        let chunk = cleanJson.slice(i, i + CHUNK_SIZE);
-                        let batch = writeBatch(db);
-                        
-                        chunk.forEach(row => {
-                            let name = row[0].toString().trim();
-                            let ref = doc(collection(db, "clients"));
-                            batch.set(ref, { name: name });
-                        });
-
-                        await batch.commit();
-                        uploaded += chunk.length;
-                        let percentage = Math.round((uploaded / total) * 100);
-                        statusDiv.innerHTML = `<b>جاري الرفع: ${uploaded} من ${total} (${percentage}%)</b>`;
-                        await new Promise(r => setTimeout(r, 100)); 
-                    }
-
-                    alert(`✅ تمت العملية بنجاح!`);
-                    fileInput.value = "";
-                    statusDiv.innerText = "تم الانتهاء.";
-                } catch (err) {
-                    alert("حدث خطأ: " + err.message);
-                } finally {
-                    showLoader(false);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
         // --- CLEANUP TOOLS ---
         window.cleanDuplicateClients = async function() {
-            if(!confirm("⚠️ تنبيه:\nسيتم فحص قاعدة البيانات وحذف العملاء المكررين.\nالعملية قد تستغرق وقتاً.")) return;
-            
-            showLoader(true, "جاري فحص العملاء...");
-            let statusDiv = document.getElementById("cleanup-status");
-            statusDiv.innerText = "جاري الفحص...";
-
+            if(!confirm("⚠️ تنبيه: سيتم حذف العملاء المكررين.")) return;
+            showLoader(true, "جاري الفحص...");
             try {
                 const snap = await getDocs(collection(db, "clients"));
                 let seen = {};
                 let duplicates = [];
-                
                 snap.forEach(doc => {
                     let name = doc.data().name;
-                    if(seen[name]) {
-                        duplicates.push(doc.ref);
-                    } else {
-                        seen[name] = true;
-                    }
+                    if(seen[name]) duplicates.push(doc.ref); else seen[name] = true;
                 });
 
-                if(duplicates.length === 0) {
-                    alert("✅ لا توجد تكرارات.");
-                } else {
+                if(duplicates.length === 0) { alert("✅ لا توجد تكرارات."); } 
+                else {
                     const CHUNK = 300;
-                    let deletedCount = 0;
                     for(let i=0; i<duplicates.length; i+=CHUNK) {
                         let batch = writeBatch(db);
                         duplicates.slice(i, i+CHUNK).forEach(ref => batch.delete(ref));
                         await batch.commit();
-                        deletedCount += Math.min(CHUNK, duplicates.length - i);
-                        statusDiv.innerText = `جاري حذف ${deletedCount} من ${duplicates.length}...`;
                         await new Promise(r => setTimeout(r, 200)); 
                     }
-                    alert(`✅ تم تنظيف ${duplicates.length} عميل مكرر بنجاح.`);
-                    statusDiv.innerText = "تم التنظيف.";
+                    alert(`✅ تم حذف ${duplicates.length} عميل مكرر.`);
                 }
             } catch(e) { alert("خطأ: " + e.message); }
             showLoader(false);
@@ -636,10 +669,7 @@
 
         window.cleanDuplicateProducts = async function() {
             if(!confirm("مسح المنتجات المكررة؟")) return;
-            showLoader(true, "جاري فحص المنتجات...");
-            let statusDiv = document.getElementById("cleanup-status");
-            statusDiv.innerText = "فحص المنتجات...";
-
+            showLoader(true, "جاري الفحص...");
             try {
                 const snap = await getDocs(collection(db, "products"));
                 let seen = {};
@@ -654,40 +684,26 @@
                     let batch = writeBatch(db);
                     duplicates.slice(i, i+CHUNK).forEach(ref => batch.delete(ref));
                     await batch.commit();
-                    statusDiv.innerText = `حذف ${i + CHUNK} منتج...`;
                     await new Promise(r => setTimeout(r, 200));
                 }
                 alert(`تم حذف ${duplicates.length} منتج مكرر.`);
-                statusDiv.innerText = "";
             } catch(e) { alert("خطأ: " + e.message); }
             showLoader(false);
-        }
-
-        window.cleanDuplicateSettings = async function() {
-            if(!confirm("تنظيف القوائم (مناطق/لاينات)؟")) return;
-            let d = {...globalSettings};
-            d.cats = [...new Set(d.cats)];
-            d.lines = [...new Set(d.lines)];
-            d.regs = [...new Set(d.regs)];
-            await setDoc(doc(db,"settings","config"), d);
-            alert("تم تنظيف القوائم.");
         }
 
         window.addSingleClient = async function() {
             let name = document.getElementById("single-client-name").value.trim();
             if(!name) return alert("اكتب الاسم");
-            
             await addDoc(collection(db, "clients"), { name: name });
             alert("✅ تمت الإضافة");
             document.getElementById("single-client-name").value = "";
         }
 
-        // --- CRUD & Core Functions ---
+        // --- CRUD ---
         window.saveProduct = async function() {
             let id = document.getElementById("edit-id").value;
             let name = document.getElementById("np-name").value.trim();
             let price = document.getElementById("np-price").value;
-            
             if(!name) return alert("الاسم مطلوب");
 
             let exists = globalProducts.some(p => p.name === name && p.id !== id);
@@ -698,7 +714,6 @@
                 sLine: document.getElementById("np-salesline").value, desc: document.getElementById("np-desc").value,
                 img: document.getElementById("np-img").value, price: price
             };
-            
             showLoader(true, "جاري الحفظ...");
             if(id) { await updateDoc(doc(db,"products",id), d); cancelEditProd(); }
             else { await addDoc(collection(db,"products"), d); alert("تم"); }
@@ -720,59 +735,6 @@
             document.getElementById("btn-save-prod").innerText="حفظ"; document.getElementById("btn-cancel-prod").style.display="none";
         }
         window.delP = async function(id){ if(confirm("حذف؟")) await deleteDoc(doc(db,"products",id)); }
-
-        // --- Dashboard Logic ---
-        function updateDashboard() {
-            if (!document.getElementById("page-dashboard")) return;
-            
-            let orders = globalOrders;
-            if (!currentUser.isAdmin) {
-                orders = orders.filter(o => o.user === currentUser.user);
-            }
-
-            let totalSales = orders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
-            document.getElementById("dash-total-sales").innerText = totalSales.toLocaleString() + " ج.م";
-            document.getElementById("dash-total-orders").innerText = orders.length;
-
-            if (currentUser.isAdmin) {
-                let repSales = {};
-                orders.forEach(o => {
-                    repSales[o.user] = (repSales[o.user] || 0) + (parseFloat(o.total) || 0);
-                });
-                renderChart("chart-reps", "مبيعات المندوبين", Object.keys(repSales), Object.values(repSales), 'bar');
-            }
-
-            let prodCount = {};
-            orders.forEach(o => {
-                prodCount[o.product] = (prodCount[o.product] || 0) + parseInt(o.qty);
-            });
-            let sortedProds = Object.entries(prodCount).sort((a,b) => b[1] - a[1]).slice(0, 5);
-            renderChart("chart-prods", "الأكثر مبيعاً", sortedProds.map(x=>x[0]), sortedProds.map(x=>x[1]), 'pie');
-        }
-
-        function renderChart(canvasId, label, labels, data, type) {
-            let ctx = document.getElementById(canvasId).getContext('2d');
-            if (canvasId === "chart-reps" && chartRepsInstance) chartRepsInstance.destroy();
-            if (canvasId === "chart-prods" && chartProdsInstance) chartProdsInstance.destroy();
-
-            let config = {
-                type: type,
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: label,
-                        data: data,
-                        backgroundColor: ['#1e3c72', '#2a5298', '#ffc107', '#2ecc71', '#e74c3c'],
-                        borderWidth: 1
-                    }]
-                },
-                options: { responsive: true }
-            };
-
-            let chart = new Chart(ctx, config);
-            if (canvasId === "chart-reps") chartRepsInstance = chart;
-            if (canvasId === "chart-prods") chartProdsInstance = chart;
-        }
 
         // --- Orders Logic ---
         window.setOrderTab = function(tab, el) {
@@ -851,82 +813,79 @@
             }
         }
 
-        // --- Reports ---
+        // --- Dashboard & Reports Logic (Same as before) ---
+        function updateDashboard() {
+            if (!document.getElementById("page-dashboard")) return;
+            let orders = globalOrders;
+            if (!currentUser.isAdmin) orders = orders.filter(o => o.user === currentUser.user);
+            let totalSales = orders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+            document.getElementById("dash-total-sales").innerText = totalSales.toLocaleString() + " ج.م";
+            document.getElementById("dash-total-orders").innerText = orders.length;
+            if (currentUser.isAdmin) {
+                let repSales = {};
+                orders.forEach(o => repSales[o.user] = (repSales[o.user] || 0) + (parseFloat(o.total) || 0));
+                renderChart("chart-reps", "مبيعات المندوبين", Object.keys(repSales), Object.values(repSales), 'bar');
+            }
+            let prodCount = {};
+            orders.forEach(o => prodCount[o.product] = (prodCount[o.product] || 0) + parseInt(o.qty));
+            let sortedProds = Object.entries(prodCount).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            renderChart("chart-prods", "الأكثر مبيعاً", sortedProds.map(x=>x[0]), sortedProds.map(x=>x[1]), 'pie');
+        }
+
+        function renderChart(canvasId, label, labels, data, type) {
+            let ctx = document.getElementById(canvasId).getContext('2d');
+            if (canvasId === "chart-reps" && chartRepsInstance) chartRepsInstance.destroy();
+            if (canvasId === "chart-prods" && chartProdsInstance) chartProdsInstance.destroy();
+            let chart = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{ label: label, data: data, backgroundColor: ['#1e3c72', '#2a5298', '#ffc107', '#2ecc71', '#e74c3c'], borderWidth: 1 }]
+                },
+                options: { responsive: true }
+            });
+            if (canvasId === "chart-reps") chartRepsInstance = chart;
+            if (canvasId === "chart-prods") chartProdsInstance = chart;
+        }
+
         window.renderReport = function() {
             let tb = document.getElementById("r-body"); 
             let thead = document.getElementById("r-head");
             let tfootLabel = document.getElementById("r-foot-label");
             tb.innerHTML = "";
-            
             let l = globalOrders;
             let isGrouped = document.getElementById("chk-group-client").checked;
-
             if(!currentUser || (!currentUser.isAdmin && !currentUser.canReport)) return;
-
             let selectedRegions = [];
             document.querySelectorAll("#report-regions-check input:checked").forEach(c => selectedRegions.push(c.value));
-            
             if(selectedRegions.length > 0) l = l.filter(o => selectedRegions.includes(o.region));
             else if (!currentUser.isAdmin) l = l.filter(o => o.region === currentUser.region);
-
             currentReportOrders = l;
             document.getElementById("btn-route-map").style.display = (l.length > 0) ? "inline-block" : "none";
-
             let grandTotal = 0;
             l.sort((a,b) => new Date(b.date) - new Date(a.date));
-
             if (isGrouped) {
-                thead.innerHTML = `<tr>
-                    <th style="background:#ddd">العميل</th>
-                    <th style="background:#ddd">المنطقة</th>
-                    <th style="background:#ddd">الأصناف (العدد)</th>
-                    <th style="background:#ddd">المندوبين</th>
-                    <th style="background:#ddd">إجمالي القيمة</th>
-                </tr>`;
+                thead.innerHTML = `<tr><th style="background:#ddd">العميل</th><th style="background:#ddd">المنطقة</th><th style="background:#ddd">الأصناف (العدد)</th><th style="background:#ddd">المندوبين</th><th style="background:#ddd">إجمالي القيمة</th></tr>`;
                 tfootLabel.colSpan = 4;
-
                 let groups = {};
                 l.forEach(o => {
                     let clientName = (o.client || "بدون اسم").trim();
                     let key = clientName + "_" + o.region;
-
-                    if (!groups[key]) {
-                        groups[key] = {
-                            client: clientName,
-                            region: o.region,
-                            products: [],
-                            users: new Set(),
-                            totalVal: 0
-                        };
-                    }
-
+                    if (!groups[key]) groups[key] = { client: clientName, region: o.region, products: [], users: new Set(), totalVal: 0 };
                     let q = parseInt(o.qty) || 1;
                     let t = parseFloat(o.total) || parseFloat(o.price);
-                    
                     groups[key].products.push(`${o.product} (${q})`);
                     groups[key].users.add(o.user);
                     groups[key].totalVal += t;
                     grandTotal += t;
                 });
-
                 for (let key in groups) {
                     let g = groups[key];
-                    let usersStr = Array.from(g.users).join(" + ");
-                    let prodStr = g.products.join("، ");
-
-                    tb.innerHTML += `<tr>
-                        <td style="font-weight:bold">${g.client}</td>
-                        <td>${g.region}</td>
-                        <td style="font-size:11px; text-align:right;">${prodStr}</td>
-                        <td style="font-size:11px;">${usersStr}</td>
-                        <td style="font-weight:bold">${g.totalVal.toLocaleString()}</td>
-                    </tr>`;
+                    tb.innerHTML += `<tr><td style="font-weight:bold">${g.client}</td><td>${g.region}</td><td style="font-size:11px; text-align:right;">${g.products.join("، ")}</td><td style="font-size:11px;">${Array.from(g.users).join(" + ")}</td><td style="font-weight:bold">${g.totalVal.toLocaleString()}</td></tr>`;
                 }
-
             } else {
                 thead.innerHTML = `<tr><th>العميل</th><th>المنتج</th><th>العدد</th><th>السعر</th><th>الإجمالي</th></tr>`;
                 tfootLabel.colSpan = 4;
-
                 l.forEach(o => {
                    let q = parseInt(o.qty) || 1;
                    let t = parseFloat(o.total) || parseFloat(o.price);
@@ -935,7 +894,6 @@
                    tb.innerHTML += `<tr><td>${o.client||'-'} ${noteText}</td><td>${o.product}</td><td>${q}</td><td>${o.price}</td><td>${t}</td></tr>`;
                 });
             }
-
             document.getElementById("r-total").innerText = grandTotal.toLocaleString() + " ج.م";
             document.getElementById("r-user").innerText = currentUser.user;
             document.getElementById("r-date").innerText = new Date().toLocaleDateString();
@@ -952,61 +910,6 @@
             let url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
             if(waypoints) url += `&waypoints=${waypoints}`;
             window.open(url, '_blank');
-        }
-
-        window.downloadPDF = function() { window.renderReport(); html2pdf().from(document.getElementById("print-area")).save("Report.pdf"); }
-
-        function renderUsersTable() {
-            let d=document.getElementById("users-list"); d.innerHTML="";
-            globalUsers.forEach(u=>{
-                let role = u.isAdmin ? '<span style="color:red; font-weight:bold;">Admin</span>' : 'موظف';
-                if(u.isLineManager) role = '<span style="color:blue; font-weight:bold;">مدير لاين</span>';
-                let job = u.job ? `[${u.job}]` : '';
-                d.innerHTML+=`
-                <div class="user-card">
-                    <div><b>${u.user}</b> ${job} <small>(${u.region})</small><br><span style="font-size:11px; color:#777;">${role}</span></div>
-                    <div><button class="btn-ghost" onclick="editUser('${u.id}')">✏️</button><button class="btn-red" onclick="delUser('${u.id}')">x</button></div>
-                </div>`;
-            });
-        }
-
-        window.toggleLineMgr = function() {
-            let isMgr = document.getElementById("perm-linemanager").checked;
-            document.getElementById("mgr-regions-box").style.display = isMgr ? "block" : "none";
-        }
-
-        window.editUser = function(id) {
-            let u = globalUsers.find(x=>x.id===id);
-            document.getElementById("u-name").value = u.user; document.getElementById("u-pass").value = u.pass;
-            document.getElementById("u-job").value = u.job||""; document.getElementById("u-reg-select").value = u.region;
-            document.getElementById("edit-user-id").value = id;
-            document.getElementById("perm-admin").checked = u.isAdmin||false;
-            document.getElementById("perm-price").checked = u.canPrice||false;
-            document.getElementById("perm-report").checked = u.canReport||false;
-            document.getElementById("perm-deliver").checked = u.canDeliver||false;
-            document.getElementById("perm-archive").checked = u.canArchive||false;
-            document.getElementById("perm-linemanager").checked = u.isLineManager||false;
-            toggleLineMgr();
-            let mgrRegs = u.manageRegions || [];
-            document.querySelectorAll("#u-mgr-regions input").forEach(c => c.checked = mgrRegs.includes(c.value));
-            let uLines = u.lines||[];
-            document.querySelectorAll("#u-lines-check input").forEach(c => c.checked = uLines.includes(c.value));
-            document.getElementById("user-form-panel").classList.add("edit-mode");
-            document.getElementById("user-form-title").innerText = "تعديل: "+u.user;
-            document.getElementById("btn-save-user").innerText = "حفظ التعديلات";
-            document.getElementById("btn-cancel-user").style.display = "inline-block";
-            document.getElementById("page-admin").scrollTop = 0;
-        }
-
-        window.cancelEditUser = function() {
-            document.getElementById("u-name").value = ""; document.getElementById("u-pass").value = ""; document.getElementById("u-job").value = "";
-            document.getElementById("edit-user-id").value = "";
-            document.querySelectorAll("input[type=checkbox]").forEach(c => c.checked = false);
-            toggleLineMgr();
-            document.getElementById("user-form-panel").classList.remove("edit-mode");
-            document.getElementById("user-form-title").innerText = "إضافة / تعديل مستخدم";
-            document.getElementById("btn-save-user").innerText = "حفظ المستخدم";
-            document.getElementById("btn-cancel-user").style.display = "none";
         }
 
         window.saveUser = async function() {
@@ -1041,8 +944,6 @@
             let uL=document.getElementById("u-lines-check");
             uL.innerHTML=`<label><input type="checkbox" value="all"> كل اللاينات</label><br>`;
             (globalSettings.lines||[]).forEach(l=>uL.innerHTML+=`<label style="margin-left:10px"><input type="checkbox" value="${l}"> ${l}</label>`);
-
-            // مناطق مدير اللاين
             let mgrR=document.getElementById("u-mgr-regions");
             mgrR.innerHTML="";
             (globalSettings.regs||[]).forEach(r=>mgrR.innerHTML+=`<label style="margin-left:10px"><input type="checkbox" value="${r}"> ${r}</label>`);
@@ -1068,7 +969,10 @@
             if(p==='dashboard') updateDashboard();
         }
         window.logout=function(){location.reload();}
-        function showLoader(s){document.getElementById("loader").style.display=s?"flex":"none";}
+        function showLoader(s, txt){
+            document.getElementById("loader").style.display=s?"flex":"none";
+            document.getElementById("loader-text").innerText = txt || "";
+        }
 
         listenToSettings();
     </script>
