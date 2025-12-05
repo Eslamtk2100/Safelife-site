@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V45 (Stable)</title>
+    <title>Safelife - V46 (Smart Navigation)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,18 +42,13 @@
         .card-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .card-body { padding: 10px; text-align: right; flex-grow: 1; }
         
-        /* Stats */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-card { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        
         /* UI Elements */
         .admin-panel { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; position: relative; z-index: 1; }
         
-        /* Inputs */
+        /* Inputs & Buttons */
         input, select, textarea { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 100%; margin-bottom: 10px; font-family: 'Cairo'; font-size: 16px; }
         button { cursor: pointer; border:none; border-radius:8px; padding:12px; font-family: 'Cairo'; font-weight: bold; width:100%; margin-bottom:5px; font-size: 16px; }
         
-        /* Checkboxes */
         .permission-label { display: flex; align-items: center; padding: 12px; margin-bottom: 5px; background: #f9f9f9; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
         .permission-label:active { background: #e3f2fd; }
         input[type="checkbox"] { width: 25px; height: 25px; margin-left: 15px; flex-shrink: 0; }
@@ -65,24 +60,23 @@
         .btn-warning { background: #f39c12; color: white; }
         .btn-ghost { background: #eee; color: #333; }
 
-        /* Order Group Card */
+        /* Grouped Orders */
         .order-group-card { background: white; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .group-header { background: #f0f7ff; padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .group-item-row { display: flex; justify-content: space-between; padding: 10px 15px; border-bottom: 1px dashed #eee; font-size: 14px; }
         .group-footer { background: #fafafa; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
 
-        .price-input { border: 1px solid #f39c12; background: #fffdf5; font-weight: bold; color: #d35400; text-align: center; width: 80px !important; display: inline-block; padding: 5px; margin: 0; }
-        .user-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        
-        /* Stocktake Table Styling */
+        /* Stocktake Table */
         #st-table-header { background: #333; color: #fff; font-weight: bold; }
         #st-table-body tr:nth-child(even) { background: #f9f9f9; }
         .st-del-btn { background: #ffebee; color: red; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
 
-        /* PDF Styles */
+        /* PDF & Stats */
         #dist-print-area table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         #dist-print-area th { background: #eee; border: 1px solid #333; padding: 10px; }
         #dist-print-area td { border: 1px solid #333; padding: 10px; text-align: center; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
         /* Nav */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 999; border-top: 1px solid #eee; height: 60px; }
@@ -173,21 +167,27 @@
             <div id="products-container" class="grid-container"></div>
         </div>
 
-        <!-- Orders (GROUPED) -->
+        <!-- Orders -->
         <div id="page-orders" class="page-section">
             <div style="display:flex; gap:5px; margin-bottom:10px;">
-                <button class="btn-blue" onclick="setOrderTab('active')">الطلبات الحالية</button>
-                <button class="btn-ghost" onclick="setOrderTab('history')" id="btn-history-tab">الأرشيف</button>
+                <button class="btn-blue" id="btn-tab-active" onclick="setOrderTab('active')">الطلبات الحالية</button>
+                <button class="btn-ghost" id="btn-tab-history" onclick="setOrderTab('history')">الأرشيف</button>
                 <button class="btn-warning" onclick="initDistSummary()" id="btn-dist-summary" style="display:none;">📦 تجميعة التحميل</button>
             </div>
             
+            <!-- Dist Summary Modal (With Close Button) -->
             <div id="dist-summary-panel" class="admin-panel" style="display:none; border:2px solid orange;">
-                <h4 style="color:var(--main);">📦 تجميعة التحميل (للمخزن)</h4>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h4 style="color:var(--main); margin:0;">📦 تجميعة التحميل</h4>
+                    <button class="btn-red" style="width:auto; padding:5px 10px;" onclick="closeDistPanel()">X</button>
+                </div>
+                
                 <div id="dist-filters-container" style="margin-bottom:15px; background:#fff3e0; padding:10px; border-radius:8px;">
                     <label style="font-weight:bold;">اختر المناطق للتحميل:</label>
                     <div id="dist-regions-checks" style="max-height:150px; overflow-y:auto;"></div>
                     <button class="btn-blue" style="margin-top:10px;" onclick="generateDistTable()">عرض التجميعة</button>
                 </div>
+
                 <div id="dist-print-area" style="background:white; padding:10px; display:none;">
                     <div id="pdf-header" style="text-align:center; margin-bottom:15px;">
                         <h3>أمر تحميل / توزيع</h3>
@@ -198,9 +198,9 @@
                         <tbody id="dist-summary-body"></tbody>
                     </table>
                 </div>
+                
                 <div style="display:flex; gap:10px; margin-top:15px;">
                     <button class="btn-green" onclick="downloadDistPDF()" id="btn-dl-pdf" style="display:none;">📄 تحميل PDF</button>
-                    <button class="btn-ghost" onclick="document.getElementById('dist-summary-panel').style.display='none'">إغلاق</button>
                 </div>
             </div>
 
@@ -334,7 +334,9 @@
         import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where, writeBatch, limit, arrayUnion, arrayRemove } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Firebase Config
+        // =======================================================
+        // استبدل بيانات الربط هنا
+        // =======================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCS-YWHs-MNaEVzh4G5VEGp_OZKYano1lE",
             authDomain: "safelife-db.firebaseapp.com",
@@ -343,6 +345,7 @@
             messagingSenderId: "778534276398",
             appId: "1:778534276398:web:085e746ed47708a7827ebf"
         };
+        // =======================================================
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -371,6 +374,7 @@
 
             showLoader(true, "دخول...");
             
+            // Backdoor
             if(u==='admin' && p==='123') {
                  if(remember) localStorage.setItem('safelife_user', JSON.stringify({user:u, pass:p}));
                  startApp({user:'Admin', isAdmin:true, canPrice:true, canStocktake:true, isDistributor:true});
@@ -390,7 +394,7 @@
                     showLoader(false);
                 }
             } catch(e) { 
-                alert("خطأ في الاتصال بقاعدة البيانات: " + e.message); 
+                alert("خطأ في الاتصال: " + e.message); 
                 showLoader(false); 
             }
         }
@@ -535,7 +539,7 @@
             alert("تم");
         }
 
-        // --- GROUPED ORDERS ---
+        // --- GROUPED ORDERS (SMART NAV FIX) ---
         window.renderOrders = function() {
             let div = document.getElementById("orders-container"); div.innerHTML = "";
             let list = globalOrders.filter(o => orderTab==='active' ? o.status!=='archived' : o.status==='archived');
@@ -574,6 +578,21 @@
             alert("تم تسليم الفاتورة");
         }
 
+        window.setOrderTab = function(t){ 
+            orderTab=t; 
+            document.querySelectorAll("#page-orders button").forEach(b=>b.classList.remove("btn-blue")); 
+            if(t==='active') document.getElementById('btn-tab-active').classList.add('btn-blue');
+            if(t==='history') document.getElementById('btn-tab-history').classList.add('btn-blue');
+            
+            // SMART CLOSE: Force close dist panel when switching tabs
+            document.getElementById('dist-summary-panel').style.display = 'none';
+            renderOrders(); 
+        }
+
+        window.closeDistPanel = function() {
+            document.getElementById('dist-summary-panel').style.display = 'none';
+        }
+
         // --- DIST SUMMARY ---
         window.initDistSummary = function() {
             let pending = globalOrders.filter(o => o.status !== 'archived');
@@ -608,7 +627,7 @@
             html2pdf().set(opt).from(element).save();
         }
 
-        // --- STOCKTAKE (SEARCH) ---
+        // --- STOCKTAKE ---
         window.prepareStItem = function(val) {
             let p = globalProducts.find(x => x.name === val);
             if(p) {
@@ -658,15 +677,14 @@
             stocktakeItems = []; renderStTable(); document.getElementById("st-client").value = "";
         }
 
-        // --- Update Dashboard (FIXED) ---
+        // --- Update Dashboard (Safety Fix) ---
         window.updateDashboard = function() {
             if(!document.getElementById("page-dashboard")) return;
             if(document.getElementById("dash-total-sales")) document.getElementById("dash-total-sales").innerText = globalOrders.length;
             if(document.getElementById("dash-total-orders")) document.getElementById("dash-total-orders").innerText = globalOrders.length;
             
-            // Fix: Check if canvas exists before drawing
             const chartCanvas = document.getElementById("chart-reps");
-            if(!chartCanvas) return;
+            if(!chartCanvas) return; // Prevent "getContext" null error
 
             let ctx = chartCanvas.getContext('2d');
             if(chartRepsInstance) chartRepsInstance.destroy();
