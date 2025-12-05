@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V47 (Multi-Branch ERP)</title>
+    <title>Safelife - V48 (Branch Manager)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,25 +20,19 @@
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; font-family: 'Cairo', sans-serif; background-color: var(--bg); padding-bottom: 90px; color: #333; }
 
-        /* Login Screen */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
         .login-box { background: rgba(255, 255, 255, 0.95); padding: 40px 30px; border-radius: 20px; width: 100%; max-width: 380px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
-
-        /* Loader */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 100000; display: none; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
 
-        /* App Structure */
         #main-app { display: none; }
         header { background: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 900; }
         
-        /* Header Branch Filter */
         #header-branch-select { padding: 5px; border: 1px solid var(--main); border-radius: 5px; font-size: 12px; background: #fff; display: none; }
 
         .page-section { display: none; padding: 15px; padding-bottom: 100px; animation: fadeIn 0.3s; }
         .active-page { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* General Styles */
         .card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; flex-direction: column; }
         .card-img-wrap { width: 100%; height: 130px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 5px; }
         .card-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
@@ -59,23 +53,23 @@
         .btn-warning { background: #f39c12; color: white; }
         .btn-ghost { background: #eee; color: #333; }
 
-        /* Order Group Card */
         .order-group-card { background: white; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .group-header { background: #f0f7ff; padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .group-item-row { display: flex; justify-content: space-between; padding: 10px 15px; border-bottom: 1px dashed #eee; font-size: 14px; }
         .group-footer { background: #fafafa; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* PDF Table */
         #dist-print-area table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         #dist-print-area th { background: #eee; border: 1px solid #333; padding: 10px; }
         #dist-print-area td { border: 1px solid #333; padding: 10px; text-align: center; }
 
-        /* Stocktake Table */
         #st-table-header { background: #333; color: #fff; font-weight: bold; }
         #st-table-body tr:nth-child(even) { background: #f9f9f9; }
         .st-del-btn { background: #ffebee; color: red; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
 
-        /* Nav */
+        /* Tree Manager Styles */
+        .tree-item { background: #f8f9fa; padding: 10px; margin-bottom: 5px; border-radius: 5px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .tree-sub-item { background: #fff; padding: 8px; margin: 5px 20px 5px 0; border-right: 3px solid var(--accent); display: flex; justify-content: space-between; font-size: 14px; }
+
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 999; border-top: 1px solid #eee; height: 60px; }
         .bottom-nav button { background: transparent; color: #aaa; font-size: 10px; width: auto; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 0; }
         .bottom-nav button.active { color: var(--main); }
@@ -107,12 +101,9 @@
     <div id="main-app">
         <header>
             <div style="font-weight:bold; color:var(--main);">Safelife</div>
-            
-            <!-- BRANCH SELECTOR (ADMIN ONLY) -->
             <select id="header-branch-select" onchange="updateGlobalBranch(this.value)">
                 <option value="all">كل الفروع</option>
             </select>
-
             <div style="display:flex; gap:5px; align-items:center;">
                 <span id="head-user" style="font-size:12px; font-weight:bold;"></span>
                 <button class="btn-red" style="padding:5px 10px;" onclick="logout()">خروج</button>
@@ -151,7 +142,7 @@
             </div>
 
             <div id="admin-tools" class="admin-panel" style="display:none; background:#fff8e1;">
-                <h4>+ منتج جديد (عام لكل الفروع)</h4>
+                <h4>+ منتج جديد (عام)</h4>
                 <input type="hidden" id="edit-id">
                 <input type="text" id="np-name" placeholder="الاسم">
                 <div style="display:flex; gap:5px;">
@@ -258,14 +249,29 @@
         <div id="page-admin" class="page-section">
             <h3>⚙️ الإعدادات</h3>
             
-            <!-- BRANCHES -->
+            <!-- BRANCH MANAGER (NEW) -->
             <div class="admin-panel" style="border:2px solid var(--main);">
-                <h4>🏢 إدارة الفروع</h4>
-                <div style="display:flex; gap:5px;">
-                    <input type="text" id="new-branch-name" placeholder="اسم الفرع الجديد">
-                    <button class="btn-blue" onclick="addBranch()">إضافة</button>
+                <h4>🏢 إدارة الفروع والمناطق</h4>
+                
+                <div style="background:#e3f2fd; padding:10px; border-radius:8px; margin-bottom:10px;">
+                    <label style="font-weight:bold;">1. إضافة فرع جديد:</label>
+                    <div style="display:flex; gap:5px;">
+                        <input type="text" id="new-branch-name" placeholder="اسم الفرع (مثل: القاهرة)">
+                        <button class="btn-blue" onclick="addNewBranch()">+ فرع</button>
+                    </div>
                 </div>
-                <div id="branches-list" style="margin-top:10px;"></div>
+
+                <div style="background:#fff3e0; padding:10px; border-radius:8px; margin-bottom:10px;">
+                    <label style="font-weight:bold;">2. إضافة منطقة لفرع:</label>
+                    <select id="settings-branch-select"></select>
+                    <div style="display:flex; gap:5px; margin-top:5px;">
+                        <input type="text" id="new-reg-name" placeholder="اسم المنطقة (مثل: المعادي)">
+                        <button class="btn-warning" onclick="addNewRegion()">+ منطقة</button>
+                    </div>
+                </div>
+
+                <h5>الهيكل الحالي:</h5>
+                <div id="branches-tree-view"></div>
             </div>
 
             <div class="admin-panel">
@@ -283,13 +289,12 @@
             </div>
 
             <div class="admin-panel">
-                <h4>القوائم (لاينات / مناطق)</h4>
+                <h4>إدارة اللاينات</h4>
                 <div style="display:flex; gap:5px;">
-                    <select id="sys-type"><option value="cats">قسم</option><option value="lines">لاين</option><option value="regs">منطقة</option></select>
-                    <input type="text" id="sys-val" placeholder="الاسم">
-                    <button class="btn-green" onclick="addSysItem()">+</button>
+                    <input type="text" id="new-line-name" placeholder="اسم اللاين">
+                    <button class="btn-green" onclick="addSysLine()">إضافة</button>
                 </div>
-                <div id="sys-lists-container" style="margin-top:10px; font-size:12px;"></div>
+                <div id="sys-lines-list" style="margin-top:10px; font-size:12px;"></div>
             </div>
 
             <div class="admin-panel" id="user-form-panel">
@@ -299,16 +304,18 @@
                 <input type="text" id="u-pass" placeholder="كلمة المرور">
                 <input type="text" id="u-job" placeholder="المسمى الوظيفي">
                 
+                <!-- Dynamic Branch/Region -->
                 <label style="color:red; font-weight:bold;">الفرع التابع له:</label>
-                <select id="u-branch-select" style="border:1px solid red;"></select>
+                <select id="u-branch-select" onchange="updateUserRegsDropdown()" style="border:1px solid red;"></select>
 
-                <label>المنطقة (داخل الفرع):</label><select id="u-reg-select"></select>
+                <label>المنطقة (داخل الفرع):</label>
+                <select id="u-reg-select"></select>
                 
                 <label style="font-weight:bold; margin-top:10px; display:block;">اللاينات (اختر):</label>
                 <div class="check-group" id="u-lines-check"></div>
 
                 <div style="background:#f9f9f9; padding:10px; border-radius:5px; margin-top:5px;">
-                    <label class="permission-label"><input type="checkbox" id="perm-admin"> Super Admin (يرى كل الفروع)</label>
+                    <label class="permission-label"><input type="checkbox" id="perm-admin"> أدمن كامل</label>
                     <label class="permission-label"><input type="checkbox" id="perm-price"> تعديل منتجات</label>
                     <label class="permission-label"><input type="checkbox" id="perm-report"> صلاحية التقارير</label>
                     <label class="permission-label"><input type="checkbox" id="perm-deliver"> مندوب توزيع</label>
@@ -364,13 +371,12 @@
 
         let currentUser = null;
         let globalProducts=[], globalOrders=[], globalUsers=[];
-        let globalSettings = { cats:[], lines:[], regs:[], branches:[] }; // Added Branches
+        // New Structure: branchRegions: { "Cairo": ["Maadi", "Nasr City"], "Alex": ["Smouha"] }
+        let globalSettings = { cats:[], lines:[], branchRegions: {}, logo:"" }; 
         let orderTab = 'active';
         let stocktakeItems = []; 
         let chartRepsInstance = null;
-        
-        // Multi-Branch Logic
-        let viewBranch = 'all'; // For Admin: 'all' or specific branchId. For User: fixed to their branch.
+        let viewBranch = 'all';
 
         window.onload = function() {
             const savedUser = localStorage.getItem('safelife_user');
@@ -412,12 +418,11 @@
             document.getElementById("main-app").style.display = "block";
             document.getElementById("head-user").innerText = user.user;
 
-            // Branch Logic Setup
             if(user.isAdmin) {
                 document.getElementById("header-branch-select").style.display = "block";
                 viewBranch = 'all';
             } else {
-                viewBranch = user.branch || 'unknown'; // Regular user locked to branch
+                viewBranch = user.branch || 'unknown'; 
             }
 
             let isVisitor = (user.user === "زائر");
@@ -446,20 +451,20 @@
             showLoader(false);
         }
 
-        // --- Listeners & Filtering ---
+        // --- Listeners ---
         function listenToSettings(){ 
             onSnapshot(doc(db,"settings","config"), d=>{ 
                 if(d.exists()){ 
-                    globalSettings=d.data(); 
-                    if(!globalSettings.branches) globalSettings.branches = [];
+                    globalSettings = d.data(); 
+                    if(!globalSettings.branchRegions) globalSettings.branchRegions = {};
+                    if(!globalSettings.lines) globalSettings.lines = [];
                     updateUI(); 
                 } else { 
-                    setDoc(doc(db,"settings","config"), {cats:[], lines:[], regs:[], branches:[]}); 
+                    setDoc(doc(db,"settings","config"), {cats:[], lines:[], branchRegions:{}, logo:""}); 
                 }
             }); 
         }
 
-        // Modified: Load all, filter in memory based on viewBranch
         function listenToProducts(){ 
             onSnapshot(collection(db,"products"), s=>{ 
                 globalProducts=[]; 
@@ -497,7 +502,6 @@
             viewBranch = val;
             renderOrders();
             updateDashboard();
-            // Refresh title
             document.getElementById("dash-branch-name").innerText = (val==='all' ? '(الكل)' : val);
         }
 
@@ -520,32 +524,127 @@
         }
 
         function updateUI() {
-            // Dropdowns
-            let npCat=document.getElementById("np-cat"), npLine=document.getElementById("np-salesline"), uReg=document.getElementById("u-reg-select");
+            // Dropdowns for Products
+            let npCat=document.getElementById("np-cat"), npLine=document.getElementById("np-salesline");
             if(npCat) npCat.innerHTML=`<option value="">القسم</option>`+(globalSettings.cats||[]).map(c=>`<option value="${c}">${c}</option>`).join("");
             if(npLine) npLine.innerHTML=`<option value="">اللاين</option>`+(globalSettings.lines||[]).map(l=>`<option value="${l}">${l}</option>`).join("");
-            if(uReg) uReg.innerHTML=(globalSettings.regs||[]).map(r=>`<option>${r}</option>`).join("");
             
-            // Branch Selects
+            // Header Filter
             let headBranch = document.getElementById("header-branch-select");
-            let uBranch = document.getElementById("u-branch-select");
-            let branches = globalSettings.branches || [];
+            let branchList = Object.keys(globalSettings.branchRegions || {});
             
-            // Header Filter (Admin)
             if(currentUser && currentUser.isAdmin) {
                 let currentVal = headBranch.value;
                 headBranch.innerHTML = `<option value="all">كل الفروع</option>`;
-                branches.forEach(b => headBranch.innerHTML += `<option value="${b}">${b}</option>`);
+                branchList.forEach(b => headBranch.innerHTML += `<option value="${b}">${b}</option>`);
                 headBranch.value = currentVal;
             }
 
-            // User Creation Form
-            if(uBranch) {
-                uBranch.innerHTML = `<option value="">اختر الفرع...</option>`;
-                branches.forEach(b => uBranch.innerHTML += `<option value="${b}">${b}</option>`);
-            }
+            // --- ADMIN SETTINGS UI ---
+            if(currentUser && currentUser.isAdmin) {
+                renderBranchTree();
+                renderLinesList();
+                
+                // User Form Dropdowns
+                let uBranch = document.getElementById("u-branch-select");
+                let uLines = document.getElementById("u-lines-check");
+                let setBranch = document.getElementById("settings-branch-select");
 
-            if(currentUser && currentUser.isAdmin) renderAdminLists();
+                // Populate Branch Dropdowns
+                let opts = `<option value="">اختر الفرع...</option>` + branchList.map(b=>`<option value="${b}">${b}</option>`).join('');
+                if(uBranch) uBranch.innerHTML = opts;
+                if(setBranch) setBranch.innerHTML = opts;
+
+                // Populate Lines Checks
+                if(uLines) {
+                    uLines.innerHTML=`<label class="permission-label"><input type="checkbox" value="all" class="u-line-chk"> الكل</label>`;
+                    (globalSettings.lines||[]).forEach(l=>uLines.innerHTML+=`<label class="permission-label"><input type="checkbox" value="${l}" class="u-line-chk"> ${l}</label>`);
+                }
+            }
+        }
+
+        // --- NEW: Branch & Region Manager Logic ---
+        window.addNewBranch = async function() {
+            let name = document.getElementById("new-branch-name").value;
+            if(!name) return;
+            // Add key to map with empty array
+            let updated = globalSettings.branchRegions || {};
+            if(!updated[name]) {
+                updated[name] = [];
+                await updateDoc(doc(db,"settings","config"), { branchRegions: updated });
+                document.getElementById("new-branch-name").value = "";
+            } else { alert("الفرع موجود بالفعل"); }
+        }
+
+        window.addNewRegion = async function() {
+            let branch = document.getElementById("settings-branch-select").value;
+            let reg = document.getElementById("new-reg-name").value;
+            if(!branch || !reg) return alert("اختر الفرع واكتب المنطقة");
+            
+            let updated = globalSettings.branchRegions;
+            if(!updated[branch].includes(reg)) {
+                updated[branch].push(reg);
+                await updateDoc(doc(db,"settings","config"), { branchRegions: updated });
+                document.getElementById("new-reg-name").value = "";
+            }
+        }
+
+        window.delBranchKey = async function(branchName) {
+            if(!confirm("حذف الفرع بكل مناطقه؟")) return;
+            let updated = globalSettings.branchRegions;
+            delete updated[branchName];
+            await updateDoc(doc(db,"settings","config"), { branchRegions: updated });
+        }
+
+        window.delRegionKey = async function(branchName, regName) {
+            if(!confirm("حذف المنطقة؟")) return;
+            let updated = globalSettings.branchRegions;
+            updated[branchName] = updated[branchName].filter(r => r !== regName);
+            await updateDoc(doc(db,"settings","config"), { branchRegions: updated });
+        }
+
+        window.renderBranchTree = function() {
+            let div = document.getElementById("branches-tree-view");
+            div.innerHTML = "";
+            let map = globalSettings.branchRegions || {};
+            for(let [branch, regs] of Object.entries(map)) {
+                let regsHTML = regs.map(r => `
+                    <div class="tree-sub-item">
+                        <span>📍 ${r}</span>
+                        <span style="color:red; cursor:pointer;" onclick="delRegionKey('${branch}', '${r}')">X</span>
+                    </div>
+                `).join('');
+                
+                div.innerHTML += `
+                <div class="tree-item">
+                    <b>🏢 ${branch}</b>
+                    <button class="btn-red" style="width:auto; padding:2px 8px;" onclick="delBranchKey('${branch}')">حذف</button>
+                </div>
+                <div style="padding-right:20px;">${regsHTML}</div>`;
+            }
+        }
+
+        // Lines Manager
+        window.addSysLine = async function() {
+            let val = document.getElementById("new-line-name").value;
+            if(val) { await updateDoc(doc(db,"settings","config"), {lines: arrayUnion(val)}); document.getElementById("new-line-name").value=""; }
+        }
+        window.delSysLine = async function(val) { if(confirm("حذف؟")) await updateDoc(doc(db,"settings","config"), {lines: arrayRemove(val)}); }
+        window.renderLinesList = function() {
+            let d = document.getElementById("sys-lines-list");
+            d.innerHTML = (globalSettings.lines||[]).map(l => `<span style="background:#eee; padding:2px 5px; margin:2px; display:inline-block;">${l} <span onclick="delSysLine('${l}')" style="color:red; cursor:pointer;">x</span></span>`).join('');
+        }
+
+        // Dynamic User Form
+        window.updateUserRegsDropdown = function() {
+            let b = document.getElementById("u-branch-select").value;
+            let rDiv = document.getElementById("u-reg-select");
+            rDiv.innerHTML = "";
+            if(b && globalSettings.branchRegions[b]) {
+                globalSettings.branchRegions[b].forEach(r => {
+                    rDiv.innerHTML += `<option value="${r}">${r}</option>`;
+                });
+            }
         }
 
         // --- Products ---
@@ -562,13 +661,10 @@
 
         window.renderProducts = function() {
             let div = document.getElementById("products-container"); div.innerHTML = "";
-            
-            // Filter Products based on Line (If user is not admin)
             let displayProducts = globalProducts;
             if(!currentUser.isAdmin && currentUser.lines && !currentUser.lines.includes('all')) {
                 displayProducts = globalProducts.filter(p => currentUser.lines.includes(p.line));
             }
-
             displayProducts.forEach(p => {
                 let img = p.img?p.img:DEFAULT_IMG;
                 let btns = "";
@@ -601,45 +697,21 @@
             let location = document.getElementById("order-location").value;
             let customPrice = document.getElementById(`price-${pid}`).value;
             if(!client) return alert("اكتب اسم العميل");
-            
             showLoader(true, "جاري الطلب...");
             await addDoc(collection(db,"orders"), { 
-                product: p.name, 
-                price: customPrice, 
-                qty: qty, 
-                total: customPrice*qty, 
-                client: client, 
-                location: location || "غير محدد", 
-                user: currentUser.user, 
-                region: currentUser.region || 'none', 
-                branch: currentUser.branch || 'unknown', // IMPORTANT: Tag with Branch
-                date: new Date().toLocaleDateString(), 
-                timestamp: Date.now(), 
-                status: 'pending' 
+                product: p.name, price: customPrice, qty: qty, total: customPrice*qty, client: client, location: location || "غير محدد", 
+                user: currentUser.user, region: currentUser.region || 'none', branch: currentUser.branch || 'unknown',
+                date: new Date().toLocaleDateString(), timestamp: Date.now(), status: 'pending' 
             });
             showLoader(false);
             alert("تم");
         }
 
-        // --- GROUPED ORDERS (FILTERED BY BRANCH) ---
+        // --- GROUPED ORDERS ---
         window.renderOrders = function() {
             let div = document.getElementById("orders-container"); div.innerHTML = "";
-            
-            // 1. Filter by Branch
-            let branchOrders = globalOrders;
-            if(viewBranch !== 'all') {
-                branchOrders = globalOrders.filter(o => o.branch === viewBranch);
-            }
-
-            // 2. Filter by Line (If Rep)
-            if(!currentUser.isAdmin && currentUser.lines && !currentUser.lines.includes('all')) {
-                // This assumes we can link product line to order. Ideally order should have line. 
-                // For simplicity, we assume rep sees all in his branch for now or implement stricter line logic later.
-            }
-
-            // 3. Filter by Tab (Active/History)
+            let branchOrders = (viewBranch === 'all') ? globalOrders : globalOrders.filter(o => o.branch === viewBranch);
             let list = branchOrders.filter(o => orderTab==='active' ? o.status!=='archived' : o.status==='archived');
-            
             let groups = {};
             list.forEach(o => { if(!groups[o.client]) groups[o.client] = []; groups[o.client].push(o); });
 
@@ -648,10 +720,7 @@
                 let firstOrder = items[0];
                 let totalAmount = items.reduce((acc, curr) => acc + parseFloat(curr.total), 0);
                 let rowsHTML = items.map(o => `<div class="group-item-row"><div>${o.product} (${o.qty} x ${o.price})</div><div style="font-weight:bold;">${o.total}</div></div>`).join('');
-                let actionBtn = "";
-                if(orderTab === 'active') actionBtn = `<button class="btn-green" style="width:auto; padding:8px 15px;" onclick="deliverGroup('${clientName}')">تسليم الفاتورة 🚚</button>`;
-                else actionBtn = `<small style="color:red;">${firstOrder.deliveryNote || "أرشيف"}</small>`;
-
+                let actionBtn = orderTab === 'active' ? `<button class="btn-green" style="width:auto; padding:8px 15px;" onclick="deliverGroup('${clientName}')">تسليم الفاتورة 🚚</button>` : `<small style="color:red;">${firstOrder.deliveryNote || "أرشيف"}</small>`;
                 div.innerHTML += `
                 <div class="order-group-card">
                     <div class="group-header"><div style="font-weight:bold; font-size:16px;">${clientName}</div><div style="font-size:12px; color:#555;">${firstOrder.date} | ${firstOrder.user}</div></div>
@@ -667,11 +736,8 @@
             let note = prompt("ملاحظات تسليم الفاتورة؟");
             if(note === null) return;
             showLoader(true, "جاري التسليم...");
-            
-            // Deliver only visible orders (Branch filtered)
             let branchOrders = (viewBranch === 'all') ? globalOrders : globalOrders.filter(o => o.branch === viewBranch);
             let pending = branchOrders.filter(o => o.client === clientName && o.status !== 'archived');
-            
             let batch = writeBatch(db);
             pending.forEach(o => { let ref = doc(db, "orders", o.id); batch.update(ref, { status: 'archived', deliveryNote: note || "تسليم كامل" }); });
             await batch.commit();
@@ -691,14 +757,12 @@
 
         // --- DIST SUMMARY ---
         window.initDistSummary = function() {
-            // Filter by Branch First
             let branchOrders = (viewBranch === 'all') ? globalOrders : globalOrders.filter(o => o.branch === viewBranch);
             let pending = branchOrders.filter(o => o.status !== 'archived');
-            
             let regions = [...new Set(pending.map(o => o.region || "غير محدد"))];
             let container = document.getElementById("dist-regions-checks");
             container.innerHTML = "";
-            if(regions.length === 0) container.innerHTML = "<small>لا توجد طلبات حالياً في أي منطقة</small>";
+            if(regions.length === 0) container.innerHTML = "<small>لا توجد طلبات حالياً</small>";
             else regions.forEach(r => { container.innerHTML += `<label class="permission-label"><input type="checkbox" value="${r}" class="dist-reg-check"> ${r}</label>`; });
             document.getElementById("dist-summary-panel").style.display = "block";
             document.getElementById("dist-print-area").style.display = "none"; 
@@ -709,24 +773,21 @@
             let selectedRegs = [];
             document.querySelectorAll(".dist-reg-check:checked").forEach(c => selectedRegs.push(c.value));
             if(selectedRegs.length === 0) return alert("اختر منطقة واحدة على الأقل");
-            
             let branchOrders = (viewBranch === 'all') ? globalOrders : globalOrders.filter(o => o.branch === viewBranch);
             let pending = branchOrders.filter(o => o.status !== 'archived' && selectedRegs.includes(o.region || "غير محدد"));
-            
             let summary = {};
             pending.forEach(o => { let qty = parseInt(o.qty) || 0; if(summary[o.product]) summary[o.product] += qty; else summary[o.product] = qty; });
             let tbody = document.getElementById("dist-summary-body");
             tbody.innerHTML = "";
             for (let [prod, total] of Object.entries(summary)) { tbody.innerHTML += `<tr><td style="text-align:right;">${prod}</td><td style="font-weight:bold; color:green;">${total}</td></tr>`; }
-            document.getElementById("pdf-meta").innerText = `الفرع: ${viewBranch==='all'?'كل الفروع':viewBranch} | مناطق: ${selectedRegs.join(' , ')} | التاريخ: ${new Date().toLocaleDateString()}`;
+            document.getElementById("pdf-meta").innerText = `الفرع: ${viewBranch} | مناطق: ${selectedRegs.join(' , ')} | التاريخ: ${new Date().toLocaleDateString()}`;
             document.getElementById("dist-print-area").style.display = "block";
             document.getElementById("btn-dl-pdf").style.display = "block";
         }
 
         window.downloadDistPDF = function() {
             const element = document.getElementById('dist-print-area');
-            var opt = { margin: 0.2, filename: 'Safelife_Order.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
-            html2pdf().set(opt).from(element).save();
+            html2pdf().from(element).save('Safelife_Load_Order.pdf');
         }
 
         // --- STOCKTAKE ---
@@ -774,53 +835,12 @@
             if(stocktakeItems.length === 0) return alert("الجدول فارغ");
             showLoader(true);
             await addDoc(collection(db, "stocktakes"), { 
-                client, user: currentUser.user, branch: currentUser.branch || 'unknown', // Tag Branch
+                client, user: currentUser.user, branch: currentUser.branch || 'unknown',
                 date: new Date().toLocaleDateString(), items: stocktakeItems, total: document.getElementById("st-total-after").innerText 
             });
             showLoader(false);
             alert("تم الحفظ");
             stocktakeItems = []; renderStTable(); document.getElementById("st-client").value = "";
-        }
-
-        // --- ADMIN: Branches ---
-        window.addBranch = async function() {
-            let val = document.getElementById("new-branch-name").value;
-            if(val) { await updateDoc(doc(db,"settings","config"), {branches: arrayUnion(val)}); document.getElementById("new-branch-name").value=""; }
-        }
-        window.delBranch = async function(val) { if(confirm("حذف الفرع؟")) await updateDoc(doc(db,"settings","config"), {branches: arrayRemove(val)}); }
-
-        window.addSysItem = async function() {
-            let type = document.getElementById("sys-type").value;
-            let val = document.getElementById("sys-val").value;
-            if(val) { await updateDoc(doc(db,"settings","config"), {[type]: arrayUnion(val)}); document.getElementById("sys-val").value=""; }
-        }
-        window.delSet = async function(type, val) { if(confirm("حذف؟")) await updateDoc(doc(db,"settings","config"), {[type]: arrayRemove(val)}); }
-
-        window.importClients = function() {
-            let file = document.getElementById('file-clients').files[0];
-            if(!file) return;
-            let reader = new FileReader();
-            reader.onload = async function(e) {
-                let data = new Uint8Array(e.target.result);
-                let workbook = XLSX.read(data, {type: 'array'});
-                let sheet = workbook.Sheets[workbook.SheetNames[0]];
-                let json = XLSX.utils.sheet_to_json(sheet, {header: 1});
-                
-                let batch = writeBatch(db);
-                let count = 0;
-                for(let i=0; i<json.length; i++) {
-                    let row = json[i];
-                    if(row[0]) {
-                        let ref = doc(collection(db, "clients"));
-                        batch.set(ref, {name: row[0]});
-                        count++;
-                        if(count >= 400) { await batch.commit(); batch = writeBatch(db); count=0; }
-                    }
-                }
-                if(count>0) await batch.commit();
-                document.getElementById("upload-status").innerText = "تم رفع العملاء بنجاح";
-            };
-            reader.readAsArrayBuffer(file);
         }
 
         // --- Admin: Users ---
@@ -835,8 +855,8 @@
             let data = {
                 user: u, pass: p, 
                 job: document.getElementById("u-job").value,
+                branch: document.getElementById("u-branch-select").value,
                 region: document.getElementById("u-reg-select").value,
-                branch: document.getElementById("u-branch-select").value, // Save Branch
                 lines: lines,
                 isAdmin: document.getElementById("perm-admin").checked,
                 canPrice: document.getElementById("perm-price").checked,
@@ -858,9 +878,13 @@
             document.getElementById("u-pass").value = u.pass;
             document.getElementById("edit-user-id").value = id;
             document.getElementById("u-job").value = u.job || "";
-            document.getElementById("u-reg-select").value = u.region;
             document.getElementById("u-branch-select").value = u.branch || "";
             
+            // Populate regions based on selected branch first
+            updateUserRegsDropdown();
+            // Then select the region
+            setTimeout(() => { document.getElementById("u-reg-select").value = u.region || ""; }, 100);
+
             document.getElementById("perm-admin").checked = u.isAdmin;
             document.getElementById("perm-price").checked = u.canPrice;
             document.getElementById("perm-report").checked = u.canReport;
@@ -873,31 +897,6 @@
             document.getElementById("user-form-title").innerText = "تعديل: " + u.user;
         }
 
-        window.renderAdminLists = function() {
-            let c=document.getElementById("sys-lists-container");
-            c.innerHTML = `<b>الفروع:</b> `+(globalSettings.branches||[]).map(x=>`<span style="background:#e3f2fd; padding:2px 5px; margin:2px;">${x} <span onclick="delBranch('${x}')" style="color:red; cursor:pointer;">x</span></span>`).join("") +
-            `<br><b>Lines:</b> `+(globalSettings.lines||[]).map(x=>`<span style="background:#ffeeba; padding:2px 5px; margin:2px;">${x} <span onclick="delSet('lines','${x}')" style="color:red; cursor:pointer;">x</span></span>`).join("") +
-            `<br><b>Regs:</b> `+(globalSettings.regs||[]).map(x=>`<span style="background:#eee; padding:2px 5px; margin:2px;">${x} <span onclick="delSet('regs','${x}')" style="color:red; cursor:pointer;">x</span></span>`).join("");
-            
-            let uL=document.getElementById("u-lines-check");
-            uL.innerHTML=`<label class="permission-label"><input type="checkbox" value="all" class="u-line-chk"> الكل</label>`;
-            (globalSettings.lines||[]).forEach(l=>uL.innerHTML+=`<label class="permission-label"><input type="checkbox" value="${l}" class="u-line-chk"> ${l}</label>`);
-        }
-
-        function renderUsersTable() {
-            let d = document.getElementById("users-list"); d.innerHTML="";
-            
-            // Filter Users by Branch if Admin selects one
-            let displayUsers = (viewBranch === 'all') ? globalUsers : globalUsers.filter(u => u.branch === viewBranch);
-
-            displayUsers.forEach(u => {
-                d.innerHTML += `<div class="user-card">
-                    <div><b>${u.user}</b> <small>(${u.branch||'-'})</small></div>
-                    <div><button style="width:30px; background:#eee;" onclick="editUser('${u.id}')">✏️</button>
-                    <button style="width:30px; background:red; color:white;" onclick="delPUser('${u.id}')">x</button></div>
-                </div>`;
-            });
-        }
         window.delPUser = async function(id) { if(confirm("حذف؟")) await deleteDoc(doc(db,"users",id)); }
         window.cancelEditUser = function() { location.reload(); }
 
@@ -916,24 +915,17 @@
 
         window.updateDashboard = function() {
             if(!document.getElementById("page-dashboard")) return;
-            
-            // Filter Dashboard Stats by Branch
             let branchOrders = (viewBranch === 'all') ? globalOrders : globalOrders.filter(o => o.branch === viewBranch);
-
             if(document.getElementById("dash-total-sales")) document.getElementById("dash-total-sales").innerText = branchOrders.length;
             if(document.getElementById("dash-total-orders")) document.getElementById("dash-total-orders").innerText = branchOrders.length;
             
             const chartCanvas = document.getElementById("chart-reps");
             if(!chartCanvas) return;
-
             let ctx = chartCanvas.getContext('2d');
             if(chartRepsInstance) chartRepsInstance.destroy();
             let repData = {}; 
             branchOrders.forEach(o => repData[o.user] = (repData[o.user]||0)+1);
-            chartRepsInstance = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: Object.keys(repData), datasets: [{ label: 'الطلبات', data: Object.values(repData), backgroundColor: '#1e3c72' }] }
-            });
+            chartRepsInstance = new Chart(ctx, { type: 'bar', data: { labels: Object.keys(repData), datasets: [{ label: 'الطلبات', data: Object.values(repData), backgroundColor: '#1e3c72' }] } });
         }
 
         window.nav = function(p) {
