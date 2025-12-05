@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V48 (Branch Manager)</title>
+    <title>Safelife - V49 (Cross Selling)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,7 +26,6 @@
 
         #main-app { display: none; }
         header { background: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 900; }
-        
         #header-branch-select { padding: 5px; border: 1px solid var(--main); border-radius: 5px; font-size: 12px; background: #fff; display: none; }
 
         .page-section { display: none; padding: 15px; padding-bottom: 100px; animation: fadeIn 0.3s; }
@@ -38,8 +37,8 @@
         .card-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .card-body { padding: 10px; text-align: right; flex-grow: 1; }
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .admin-panel { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; position: relative; z-index: 1; }
         
+        .admin-panel { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; position: relative; z-index: 1; }
         input, select, textarea { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 100%; margin-bottom: 10px; font-family: 'Cairo'; font-size: 16px; }
         button { cursor: pointer; border:none; border-radius:8px; padding:12px; font-family: 'Cairo'; font-weight: bold; width:100%; margin-bottom:5px; font-size: 16px; }
         
@@ -66,7 +65,6 @@
         #st-table-body tr:nth-child(even) { background: #f9f9f9; }
         .st-del-btn { background: #ffebee; color: red; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
 
-        /* Tree Manager Styles */
         .tree-item { background: #f8f9fa; padding: 10px; margin-bottom: 5px; border-radius: 5px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .tree-sub-item { background: #fff; padding: 8px; margin: 5px 20px 5px 0; border-right: 3px solid var(--accent); display: flex; justify-content: space-between; font-size: 14px; }
 
@@ -142,7 +140,7 @@
             </div>
 
             <div id="admin-tools" class="admin-panel" style="display:none; background:#fff8e1;">
-                <h4>+ منتج جديد (عام)</h4>
+                <h4>+ منتج جديد</h4>
                 <input type="hidden" id="edit-id">
                 <input type="text" id="np-name" placeholder="الاسم">
                 <div style="display:flex; gap:5px;">
@@ -249,7 +247,6 @@
         <div id="page-admin" class="page-section">
             <h3>⚙️ الإعدادات</h3>
             
-            <!-- BRANCH MANAGER (NEW) -->
             <div class="admin-panel" style="border:2px solid var(--main);">
                 <h4>🏢 إدارة الفروع والمناطق</h4>
                 
@@ -304,7 +301,6 @@
                 <input type="text" id="u-pass" placeholder="كلمة المرور">
                 <input type="text" id="u-job" placeholder="المسمى الوظيفي">
                 
-                <!-- Dynamic Branch/Region -->
                 <label style="color:red; font-weight:bold;">الفرع التابع له:</label>
                 <select id="u-branch-select" onchange="updateUserRegsDropdown()" style="border:1px solid red;"></select>
 
@@ -371,7 +367,6 @@
 
         let currentUser = null;
         let globalProducts=[], globalOrders=[], globalUsers=[];
-        // New Structure: branchRegions: { "Cairo": ["Maadi", "Nasr City"], "Alex": ["Smouha"] }
         let globalSettings = { cats:[], lines:[], branchRegions: {}, logo:"" }; 
         let orderTab = 'active';
         let stocktakeItems = []; 
@@ -524,12 +519,10 @@
         }
 
         function updateUI() {
-            // Dropdowns for Products
             let npCat=document.getElementById("np-cat"), npLine=document.getElementById("np-salesline");
             if(npCat) npCat.innerHTML=`<option value="">القسم</option>`+(globalSettings.cats||[]).map(c=>`<option value="${c}">${c}</option>`).join("");
             if(npLine) npLine.innerHTML=`<option value="">اللاين</option>`+(globalSettings.lines||[]).map(l=>`<option value="${l}">${l}</option>`).join("");
             
-            // Header Filter
             let headBranch = document.getElementById("header-branch-select");
             let branchList = Object.keys(globalSettings.branchRegions || {});
             
@@ -540,22 +533,18 @@
                 headBranch.value = currentVal;
             }
 
-            // --- ADMIN SETTINGS UI ---
             if(currentUser && currentUser.isAdmin) {
                 renderBranchTree();
                 renderLinesList();
                 
-                // User Form Dropdowns
                 let uBranch = document.getElementById("u-branch-select");
                 let uLines = document.getElementById("u-lines-check");
                 let setBranch = document.getElementById("settings-branch-select");
 
-                // Populate Branch Dropdowns
                 let opts = `<option value="">اختر الفرع...</option>` + branchList.map(b=>`<option value="${b}">${b}</option>`).join('');
                 if(uBranch) uBranch.innerHTML = opts;
                 if(setBranch) setBranch.innerHTML = opts;
 
-                // Populate Lines Checks
                 if(uLines) {
                     uLines.innerHTML=`<label class="permission-label"><input type="checkbox" value="all" class="u-line-chk"> الكل</label>`;
                     (globalSettings.lines||[]).forEach(l=>uLines.innerHTML+=`<label class="permission-label"><input type="checkbox" value="${l}" class="u-line-chk"> ${l}</label>`);
@@ -563,11 +552,10 @@
             }
         }
 
-        // --- NEW: Branch & Region Manager Logic ---
+        // --- BRANCH & REGION MANAGER ---
         window.addNewBranch = async function() {
             let name = document.getElementById("new-branch-name").value;
             if(!name) return;
-            // Add key to map with empty array
             let updated = globalSettings.branchRegions || {};
             if(!updated[name]) {
                 updated[name] = [];
@@ -614,7 +602,6 @@
                         <span style="color:red; cursor:pointer;" onclick="delRegionKey('${branch}', '${r}')">X</span>
                     </div>
                 `).join('');
-                
                 div.innerHTML += `
                 <div class="tree-item">
                     <b>🏢 ${branch}</b>
@@ -647,7 +634,7 @@
             }
         }
 
-        // --- Products ---
+        // --- Products (SHOW ALL - CROSS SELL) ---
         window.saveProduct = async function() {
             let id = document.getElementById("edit-id").value;
             let name = document.getElementById("np-name").value;
@@ -661,11 +648,8 @@
 
         window.renderProducts = function() {
             let div = document.getElementById("products-container"); div.innerHTML = "";
-            let displayProducts = globalProducts;
-            if(!currentUser.isAdmin && currentUser.lines && !currentUser.lines.includes('all')) {
-                displayProducts = globalProducts.filter(p => currentUser.lines.includes(p.line));
-            }
-            displayProducts.forEach(p => {
+            // SHOW ALL PRODUCTS to allow cross-selling
+            globalProducts.forEach(p => {
                 let img = p.img?p.img:DEFAULT_IMG;
                 let btns = "";
                 if(currentUser && currentUser.user!=="زائر" && (currentUser.isAdmin || currentUser.canPrice)) {
@@ -701,17 +685,25 @@
             await addDoc(collection(db,"orders"), { 
                 product: p.name, price: customPrice, qty: qty, total: customPrice*qty, client: client, location: location || "غير محدد", 
                 user: currentUser.user, region: currentUser.region || 'none', branch: currentUser.branch || 'unknown',
+                productLine: p.line || 'general', // SAVE PRODUCT LINE
                 date: new Date().toLocaleDateString(), timestamp: Date.now(), status: 'pending' 
             });
             showLoader(false);
             alert("تم");
         }
 
-        // --- GROUPED ORDERS ---
+        // --- ORDERS (FILTER BY MY LINE + MY ORDERS) ---
         window.renderOrders = function() {
             let div = document.getElementById("orders-container"); div.innerHTML = "";
             let branchOrders = (viewBranch === 'all') ? globalOrders : globalOrders.filter(o => o.branch === viewBranch);
-            let list = branchOrders.filter(o => orderTab==='active' ? o.status!=='archived' : o.status==='archived');
+            
+            // Filter Logic: Show if (Admin) OR (My Line) OR (My Own Orders)
+            let visibleOrders = branchOrders;
+            if(!currentUser.isAdmin && currentUser.lines && !currentUser.lines.includes('all')) {
+                visibleOrders = branchOrders.filter(o => currentUser.lines.includes(o.productLine) || o.user === currentUser.user);
+            }
+
+            let list = visibleOrders.filter(o => orderTab==='active' ? o.status!=='archived' : o.status==='archived');
             let groups = {};
             list.forEach(o => { if(!groups[o.client]) groups[o.client] = []; groups[o.client].push(o); });
 
@@ -736,8 +728,15 @@
             let note = prompt("ملاحظات تسليم الفاتورة؟");
             if(note === null) return;
             showLoader(true, "جاري التسليم...");
+            
+            // Re-apply visibility logic to find pending orders for this client
             let branchOrders = (viewBranch === 'all') ? globalOrders : globalOrders.filter(o => o.branch === viewBranch);
-            let pending = branchOrders.filter(o => o.client === clientName && o.status !== 'archived');
+            let visibleOrders = branchOrders;
+            if(!currentUser.isAdmin && currentUser.lines && !currentUser.lines.includes('all')) {
+                visibleOrders = branchOrders.filter(o => currentUser.lines.includes(o.productLine) || o.user === currentUser.user);
+            }
+            
+            let pending = visibleOrders.filter(o => o.client === clientName && o.status !== 'archived');
             let batch = writeBatch(db);
             pending.forEach(o => { let ref = doc(db, "orders", o.id); batch.update(ref, { status: 'archived', deliveryNote: note || "تسليم كامل" }); });
             await batch.commit();
