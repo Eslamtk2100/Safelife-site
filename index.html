@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V37 (Ultimate)</title>
+    <title>Safelife - V38 (Final Fixed)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -23,13 +25,13 @@
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
         .login-box { background: rgba(255, 255, 255, 0.95); padding: 40px 30px; border-radius: 20px; width: 100%; max-width: 380px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
 
-        /* Loader */
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 100000; display: none; flex-direction: column; justify-content: center; align-items: center; }
+        /* Loader (Fixed: won't block clicks if stuck) */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 100000; display: none; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
         #loader-text { margin-top: 10px; color: var(--main); font-weight: bold; }
 
         /* App Structure */
         #main-app { display: none; }
-        header { background: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        header { background: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 50; }
         
         .page-section { display: none; padding: 15px; padding-bottom: 100px; animation: fadeIn 0.3s; }
         .active-page { display: block; }
@@ -42,34 +44,50 @@
         .card-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .card-body { padding: 10px; text-align: right; flex-grow: 1; }
         
-        /* Dashboard */
+        /* Dashboard Stats */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-card { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .stat-num { font-size: 20px; font-weight: bold; color: var(--main); }
         
-        /* Inputs & Buttons */
+        /* ----------------------------------------------------
+           FIXED INTERACTION STYLES (Z-Index & Positioning)
+           ---------------------------------------------------- */
+        .admin-panel { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; position: relative; z-index: 1; }
+        
+        /* Force Inputs/Buttons to be clickable */
+        input, select, textarea, button, label { 
+            position: relative; 
+            z-index: 2; 
+            touch-action: manipulation;
+        }
+
+        /* Checkbox Styling Fix */
+        input[type="checkbox"] { width: 22px; height: 22px; vertical-align: middle; margin-left: 8px; cursor: pointer; }
+        label { display: flex; align-items: center; margin-bottom: 8px; cursor: pointer; padding: 5px 0; }
+
         input, select, textarea { padding: 10px; border: 1px solid #ddd; border-radius: 8px; width: 100%; margin-bottom: 8px; font-family: 'Cairo'; font-size: 14px; }
         button { cursor: pointer; border:none; border-radius:8px; padding:10px; font-family: 'Cairo'; font-weight: bold; width:100%; margin-bottom:5px; }
+        
+        /* Buttons Colors */
         .btn-green { background: var(--green); color: white; }
         .btn-red { background: #e74c3c; color: white; width:auto; padding:5px 15px; }
         .btn-blue { background: var(--main); color: white; }
         .btn-warning { background: #f39c12; color: white; }
         .btn-ghost { background: #eee; color: #333; }
 
-        /* Admin Panels */
-        .admin-panel { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
+        /* Lists & Groups */
         .user-card { background: white; padding: 10px; border-radius: 8px; margin-bottom: 5px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .check-group { text-align: right; max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 5px; background: #fff; }
+        .check-group { text-align: right; max-height: 200px; overflow-y: auto; border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 5px; background: #fff; -webkit-overflow-scrolling: touch; }
 
         /* Order Card */
         .order-card { background: white; border-right: 4px solid var(--main); padding: 10px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
-        /* Special Inputs */
-        .price-input { border: 1px solid #f39c12; background: #fffdf5; font-weight: bold; color: #d35400; text-align: center; width: 70px !important; display: inline-block; padding: 5px; margin: 0; }
+        /* Special Price Input */
+        .price-input { border: 1px solid #f39c12; background: #fffdf5; font-weight: bold; color: #d35400; text-align: center; width: 80px !important; display: inline-block; padding: 5px; margin: 0; }
 
-        /* Nav */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 999; border-top: 1px solid #eee; height: 60px; }
-        .bottom-nav button { background: transparent; color: #aaa; font-size: 10px; width: auto; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 0; }
+        /* Navigation */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 100; border-top: 1px solid #eee; height: 60px; }
+        .bottom-nav button { background: transparent; color: #aaa; font-size: 10px; width: auto; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 0; z-index: 101; }
         .bottom-nav button.active { color: var(--main); }
         .bottom-nav button span { font-size: 20px; margin-bottom: 2px; }
 
@@ -83,7 +101,7 @@
 
     <div id="loader">
         <div style="font-size:30px; margin-bottom:10px;">↻</div>
-        <h3 style="color:var(--main);">جاري الاتصال...</h3>
+        <h3 style="color:var(--main);">جاري العمل...</h3>
         <div id="loader-text" style="font-size:12px;"></div>
     </div>
 
@@ -130,7 +148,7 @@
         <!-- Products -->
         <div id="page-products" class="page-section">
             <div class="admin-panel" style="border: 2px solid var(--accent);">
-                <label>العميل:</label>
+                <label style="font-weight:bold;">العميل:</label>
                 <input type="text" id="current-client" list="clients-datalist" placeholder="اكتب للبحث..." oninput="searchClients(this.value)">
                 <datalist id="clients-datalist"></datalist>
                 
@@ -151,7 +169,7 @@
                 </div>
                 <input type="text" id="np-desc" placeholder="وصف">
                 <input type="text" id="np-img" placeholder="رابط الصورة">
-                <input type="number" id="np-price" placeholder="السعر">
+                <input type="number" id="np-price" placeholder="السعر الافتراضي">
                 <div style="display:flex; gap:5px;">
                     <button class="btn-green" onclick="saveProduct()">حفظ</button>
                     <button class="btn-ghost" onclick="cancelEditProd()" style="display:none;" id="btn-cancel-prod">إلغاء</button>
@@ -194,7 +212,7 @@
             <button class="btn-green" onclick="saveStocktake()">حفظ التقفيلة</button>
         </div>
 
-        <!-- Admin Settings (RESTORED ALL FEATURES) -->
+        <!-- Admin Settings -->
         <div id="page-admin" class="page-section">
             <h3>⚙️ الإعدادات</h3>
             
@@ -241,7 +259,7 @@
                 <div id="sys-lists-container" style="margin-top:10px; font-size:12px;"></div>
             </div>
 
-            <!-- Users (RESTORED GRANULAR PERMISSIONS) -->
+            <!-- Users (Full Permissions) -->
             <div class="admin-panel" id="user-form-panel">
                 <h4 id="user-form-title">إضافة / تعديل مستخدم</h4>
                 <input type="hidden" id="edit-user-id">
@@ -254,14 +272,14 @@
                 <div class="check-group" id="u-lines-check"></div>
 
                 <div style="background:#f9f9f9; padding:10px; border-radius:5px; margin-top:5px;">
-                    <label><input type="checkbox" id="perm-admin"> أدمن كامل</label><br>
-                    <label><input type="checkbox" id="perm-price"> تعديل منتجات</label><br>
-                    <label><input type="checkbox" id="perm-report"> تقارير</label><br>
-                    <label><input type="checkbox" id="perm-deliver"> مندوب توزيع</label><br>
-                    <label><input type="checkbox" id="perm-stocktake"> جرد / تقفيل</label><br>
-                    <label><input type="checkbox" id="perm-archive"> مشاهدة أرشيف</label><br>
+                    <label><input type="checkbox" id="perm-admin"> أدمن كامل</label>
+                    <label><input type="checkbox" id="perm-price"> تعديل منتجات</label>
+                    <label><input type="checkbox" id="perm-report"> صلاحية التقارير</label>
+                    <label><input type="checkbox" id="perm-deliver"> مندوب توزيع</label>
+                    <label><input type="checkbox" id="perm-stocktake"> صلاحية عمل تقفيلات/جرد</label>
+                    <label><input type="checkbox" id="perm-archive"> مشاهدة الأرشيف</label>
                     <hr>
-                    <label><input type="checkbox" id="perm-linemanager" onchange="toggleLineMgr()"> مشرف لاين (مدير)</label>
+                    <label><input type="checkbox" id="perm-linemanager" onchange="toggleLineMgr()"> مدير لاين (إشراف)</label>
                     <div id="mgr-regions-box" style="display:none; margin-top:5px;">
                         <small>مناطق الإشراف:</small>
                         <div class="check-group" id="u-mgr-regions"></div>
@@ -278,6 +296,7 @@
             <div id="users-list"></div>
         </div>
 
+        <!-- Navigation Buttons -->
         <div class="bottom-nav">
             <button onclick="nav('dashboard')" id="btn-dashboard"><span>🏠</span>الرئيسية</button>
             <button onclick="nav('products')" id="btn-products"><span>💊</span>المنتجات</button>
@@ -292,6 +311,7 @@
         import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where, writeBatch, limit, arrayUnion, arrayRemove } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // Firebase Config (Your Project)
         const firebaseConfig = {
             apiKey: "AIzaSyCS-YWHs-MNaEVzh4G5VEGp_OZKYano1lE",
             authDomain: "safelife-db.firebaseapp.com",
@@ -307,19 +327,17 @@
         let currentUser = null;
         let globalProducts=[], globalOrders=[], globalUsers=[];
         let globalSettings = { cats:[], lines:[], regs:[], logo:"" };
-        let activeCat='all', activeLine='all';
         let orderTab = 'active';
         const DEFAULT_IMG = "https://cdn-icons-png.flaticon.com/512/2965/2965363.png";
-        
         let chartRepsInstance = null;
 
-        // Login
+        // --- Login Logic ---
         window.login = async function() {
             let u = document.getElementById("l-user").value;
             let p = document.getElementById("l-pass").value;
             showLoader(true, "دخول...");
             
-            // Backdoor for first setup
+            // Backdoor
             if(u==='admin' && p==='123') {
                  startApp({user:'Admin', isAdmin:true, canPrice:true, canStocktake:true});
                  return;
@@ -335,7 +353,7 @@
                     document.getElementById("error-msg").style.display="block";
                     showLoader(false);
                 }
-            } catch(e) { alert("Error: "+e.message); showLoader(false); }
+            } catch(e) { alert("خطأ في الاتصال"); showLoader(false); }
         }
 
         window.startApp = function(user) {
@@ -362,7 +380,7 @@
             showLoader(false);
         }
 
-        // Listeners
+        // --- Listeners ---
         function listenToSettings(){ onSnapshot(doc(db,"settings","config"), d=>{ 
             if(d.exists()){ globalSettings=d.data(); updateUI(); }
             else { setDoc(doc(db,"settings","config"), {cats:[], lines:[], regs:[]}); }
@@ -371,7 +389,7 @@
         function listenToOrders(){ onSnapshot(collection(db,"orders"), s=>{ globalOrders=[]; s.forEach(d=>globalOrders.push({...d.data(),id:d.id})); updateDashboard(); renderOrders(); }); }
         function listenToUsers(){ onSnapshot(collection(db,"users"), s=>{ globalUsers=[]; s.forEach(d=>globalUsers.push({...d.data(),id:d.id})); renderUsersTable(); }); }
 
-        // --- Core Functions ---
+        // --- Core: GPS & Search ---
         window.searchClients = async function(val) {
             let dl = document.getElementById("clients-datalist");
             dl.innerHTML = "";
@@ -380,10 +398,9 @@
                 const q = query(collection(db, "clients"), where('name', '>=', val), where('name', '<=', val + '\uf8ff'), limit(10));
                 const snap = await getDocs(q);
                 snap.forEach(doc => { dl.innerHTML += `<option value="${doc.data().name}">`; });
-            } catch(e) { console.error(e); }
+            } catch(e) {}
         }
 
-        // --- GPS Logic ---
         window.getGPS = function() {
             if(navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(pos => {
@@ -407,7 +424,7 @@
             if(currentUser && currentUser.isAdmin) renderAdminLists();
         }
 
-        // --- Products & Orders ---
+        // --- Products & Ordering ---
         window.saveProduct = async function() {
             let id = document.getElementById("edit-id").value;
             let name = document.getElementById("np-name").value;
@@ -440,20 +457,20 @@
                     }
                 }
                 
-                // NEW: Editable Price Input inside Card
+                // Editable Price Logic
                 div.innerHTML += `
                 <div class="card">
                     ${btns}
                     <div class="card-img-wrap"><img src="${img}"></div>
                     <div class="card-body">
-                        <div class="prod-title">${p.name}</div>
+                        <div style="font-weight:bold; font-size:14px; margin-bottom:5px;">${p.name}</div>
                         <div style="margin:5px 0;">
                             <label style="font-size:11px;">السعر:</label>
                             <input type="number" id="price-${p.id}" value="${p.price}" class="price-input"> ج.م
                         </div>
                         <div class="qty-row" style="display:flex; gap:5px;">
                             <input type="number" value="1" min="1" class="qty-input" id="qty-${p.id}" style="text-align:center;">
-                            <button class="add-btn" onclick="mkOrd('${p.id}')">طلب</button>
+                            <button class="add-btn btn-green" style="padding:5px;" onclick="mkOrd('${p.id}')">طلب</button>
                         </div>
                     </div>
                 </div>`;
@@ -487,6 +504,7 @@
             alert("تم");
         }
 
+        // --- Orders List & Delivery ---
         window.renderOrders = function() {
             let div = document.getElementById("orders-container"); div.innerHTML = "";
             let list = globalOrders.filter(o => orderTab==='active' ? o.status!=='archived' : o.status==='archived');
@@ -495,7 +513,7 @@
             list.forEach(o => {
                 let actionBtn = "";
                 if(o.status !== 'archived') {
-                    // NEW: Deliver button with logic
+                    // NEW: Deliver button
                     actionBtn = `<button class="btn-green" style="width:auto; padding:5px 10px; font-size:12px;" onclick="deliverOrder('${o.id}')">تسليم 🚚</button>`;
                 } else {
                     actionBtn = `<small style="color:red;">${o.deliveryNote || "تم التسليم"}</small>`;
@@ -518,14 +536,14 @@
         }
 
         window.deliverOrder = async function(id) {
-            let note = prompt("هل توجد ملاحظات تسليم؟ (ناقص / مرتجع..)");
+            let note = prompt("ملاحظات التسليم؟ (اترك فارغاً للتسليم الكامل)");
             if(note === null) return;
             await updateDoc(doc(db,"orders",id), {status:'archived', deliveryNote: note || "تسليم كامل"});
         }
 
         window.setOrderTab = function(t){ orderTab=t; document.querySelectorAll("#page-orders button").forEach(b=>b.classList.remove("btn-blue")); event.target.classList.add("btn-blue"); renderOrders(); }
 
-        // --- Stocktake (With Editable Price) ---
+        // --- Stocktake Logic ---
         window.renderStocktakeForm = function() {
             let tbody = document.getElementById("st-table-body");
             tbody.innerHTML = "";
@@ -607,6 +625,12 @@
             reader.readAsArrayBuffer(file);
         }
 
+        window.saveLogo = async function() {
+            let url = document.getElementById("sys-logo-url").value;
+            await updateDoc(doc(db,"settings","config"), {logo: url});
+            alert("تم الحفظ"); location.reload();
+        }
+
         // --- Admin: Users ---
         window.saveUser = async function() {
             let u=document.getElementById("u-name").value;
@@ -678,8 +702,9 @@
             });
         }
         window.delPUser = async function(id) { if(confirm("حذف؟")) await deleteDoc(doc(db,"users",id)); }
+        window.cancelEditUser = function() { location.reload(); }
 
-        // Core UI
+        // --- Helpers ---
         window.editProd = function(id) {
             let p = globalProducts.find(x=>x.id===id);
             document.getElementById("edit-id").value = id;
