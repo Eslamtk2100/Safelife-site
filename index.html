@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V43 (Smart Stock & Dist)</title>
+    <title>Safelife - V44 (Fix Login)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -345,7 +345,9 @@
         import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where, writeBatch, limit, arrayUnion, arrayRemove } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Firebase Config
+        // =======================================================
+        // تنبيه هام: قم باستبدال هذا الجزء ببياناتك الصحيحة
+        // =======================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCS-YWHs-MNaEVzh4G5VEGp_OZKYano1lE",
             authDomain: "safelife-db.firebaseapp.com",
@@ -354,6 +356,7 @@
             messagingSenderId: "778534276398",
             appId: "1:778534276398:web:085e746ed47708a7827ebf"
         };
+        // =======================================================
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -362,7 +365,7 @@
         let globalProducts=[], globalOrders=[], globalUsers=[];
         let globalSettings = { cats:[], lines:[], regs:[], logo:"" };
         let orderTab = 'active';
-        let stocktakeItems = []; // Array to hold stocktake temp items
+        let stocktakeItems = []; 
         let chartRepsInstance = null;
 
         // --- Auto Login (Remember Me) ---
@@ -382,6 +385,7 @@
 
             showLoader(true, "دخول...");
             
+            // Backdoor for emergency admin access (works without DB)
             if(u==='admin' && p==='123') {
                  if(remember) localStorage.setItem('safelife_user', JSON.stringify({user:u, pass:p}));
                  startApp({user:'Admin', isAdmin:true, canPrice:true, canStocktake:true, isDistributor:true});
@@ -396,10 +400,14 @@
                     if(remember) localStorage.setItem('safelife_user', JSON.stringify({user:u, pass:p}));
                     startApp(d);
                 } else {
+                    document.getElementById("error-msg").innerText = "اسم المستخدم أو كلمة المرور خطأ";
                     document.getElementById("error-msg").style.display="block";
                     showLoader(false);
                 }
-            } catch(e) { alert("خطأ في الاتصال"); showLoader(false); }
+            } catch(e) { 
+                alert("خطأ في الاتصال بقاعدة البيانات: " + e.message); 
+                showLoader(false); 
+            }
         }
 
         window.logout = function() {
@@ -638,7 +646,6 @@
 
         // --- DIST SUMMARY (SMART FILTER & PDF) ---
         window.initDistSummary = function() {
-            // 1. Get Unique Regions from Pending Orders
             let pending = globalOrders.filter(o => o.status !== 'archived');
             let regions = [...new Set(pending.map(o => o.region || "غير محدد"))];
             
@@ -653,23 +660,18 @@
                 });
             }
 
-            // Show Panel
             document.getElementById("dist-summary-panel").style.display = "block";
             document.getElementById("dist-print-area").style.display = "none"; 
             document.getElementById("btn-dl-pdf").style.display = "none";
         }
 
         window.generateDistTable = function() {
-            // 1. Get Selected Regions
             let selectedRegs = [];
             document.querySelectorAll(".dist-reg-check:checked").forEach(c => selectedRegs.push(c.value));
             
             if(selectedRegs.length === 0) return alert("اختر منطقة واحدة على الأقل");
 
-            // 2. Filter Orders
             let pending = globalOrders.filter(o => o.status !== 'archived' && selectedRegs.includes(o.region || "غير محدد"));
-            
-            // 3. Aggregate
             let summary = {};
             pending.forEach(o => {
                 let qty = parseInt(o.qty) || 0;
@@ -677,14 +679,12 @@
                 else summary[o.product] = qty;
             });
 
-            // 4. Render Table
             let tbody = document.getElementById("dist-summary-body");
             tbody.innerHTML = "";
             for (let [prod, total] of Object.entries(summary)) {
                 tbody.innerHTML += `<tr><td style="text-align:right;">${prod}</td><td style="font-weight:bold; color:green;">${total}</td></tr>`;
             }
 
-            // 5. Show
             document.getElementById("pdf-meta").innerText = `مناطق: ${selectedRegs.join(' , ')} | التاريخ: ${new Date().toLocaleDateString()}`;
             document.getElementById("dist-print-area").style.display = "block";
             document.getElementById("btn-dl-pdf").style.display = "block";
@@ -724,8 +724,6 @@
             if(qty > 0) {
                 stocktakeItems.push({id, name, price, qty});
                 renderStTable();
-                
-                // Reset
                 document.getElementById("st-search-prod").value = "";
                 document.getElementById("st-entry-box").style.display = "none";
                 document.getElementById("st-entry-qty").value = 1;
@@ -762,7 +760,6 @@
         window.calcStTotals = function() {
             let total = stocktakeItems.reduce((acc, curr) => acc + (curr.price * curr.qty), 0);
             document.getElementById("st-total-before").innerText = total.toFixed(1);
-            
             let disc = parseFloat(document.getElementById("st-discount").value) || 0;
             let final = total - (total * disc / 100);
             document.getElementById("st-total-after").innerText = final.toFixed(1);
@@ -783,8 +780,6 @@
             });
             showLoader(false);
             alert("تم الحفظ");
-            
-            // Clear
             stocktakeItems = [];
             renderStTable();
             document.getElementById("st-client").value = "";
@@ -911,7 +906,6 @@
 
         window.updateDashboard = function() {
             if(!document.getElementById("page-dashboard")) return;
-            document.getElementById("dash-total-sales").innerText = globalOrders.length;
             document.getElementById("dash-total-orders").innerText = globalOrders.length;
             
             let ctx = document.getElementById("chart-reps").getContext('2d');
