@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V42 (Dist PDF & Filter)</title>
+    <title>Safelife - V43 (Smart Stock & Dist)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -70,8 +69,11 @@
 
         .price-input { border: 1px solid #f39c12; background: #fffdf5; font-weight: bold; color: #d35400; text-align: center; width: 80px !important; display: inline-block; padding: 5px; margin: 0; }
         .user-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-card { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        
+        /* Stocktake Table Styling */
+        #st-table-header { background: #333; color: #fff; font-weight: bold; }
+        #st-table-body tr:nth-child(even) { background: #f9f9f9; }
+        .st-del-btn { background: #ffebee; color: red; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
 
         /* PDF Styles */
         #dist-print-area table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -120,19 +122,15 @@
         <!-- Dashboard -->
         <div id="page-dashboard" class="page-section active-page">
             <h3>📊 لوحة القيادة</h3>
-            <div class="stat-grid">
-                <div class="stat-card">
-                    <div class="stat-num" id="dash-total-sales" style="font-size:20px; font-weight:bold;">0</div>
-                    <div>إجمالي المبيعات</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="admin-panel" style="text-align:center;">
+                    <div id="dash-total-sales" style="font-size:24px; font-weight:bold; color:var(--main);">0</div>
+                    <div>المبيعات</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-num" id="dash-total-orders" style="font-size:20px; font-weight:bold;">0</div>
-                    <div>عدد الطلبات</div>
+                <div class="admin-panel" style="text-align:center;">
+                    <div id="dash-total-orders" style="font-size:24px; font-weight:bold; color:var(--green);">0</div>
+                    <div>الطلبات</div>
                 </div>
-            </div>
-            <div class="admin-panel">
-                <h5>🏆 أداء المندوبين</h5>
-                <canvas id="chart-reps"></canvas>
             </div>
         </div>
 
@@ -172,22 +170,23 @@
             <div style="display:flex; gap:5px; margin-bottom:10px;">
                 <button class="btn-blue" onclick="setOrderTab('active')">الطلبات الحالية</button>
                 <button class="btn-ghost" onclick="setOrderTab('history')" id="btn-history-tab">الأرشيف</button>
-                <button class="btn-warning" onclick="showDistSummary()" id="btn-dist-summary" style="display:none;">📦 تجميعة التحميل</button>
+                <button class="btn-warning" onclick="initDistSummary()" id="btn-dist-summary" style="display:none;">📦 تجميعة التحميل</button>
             </div>
             
-            <!-- Summary Modal (Distribution) -->
+            <!-- Dist Summary Modal -->
             <div id="dist-summary-panel" class="admin-panel" style="display:none; border:2px solid orange;">
                 <h4 style="color:var(--main);">📦 تجميعة التحميل (للمخزن)</h4>
                 
-                <label>تصفية بالمنطقة:</label>
-                <select id="dist-filter-reg" onchange="showDistSummary()">
-                    <option value="all">كل المناطق</option>
-                </select>
+                <div id="dist-filters-container" style="margin-bottom:15px; background:#fff3e0; padding:10px; border-radius:8px;">
+                    <label style="font-weight:bold;">اختر المناطق للتحميل:</label>
+                    <div id="dist-regions-checks" style="max-height:150px; overflow-y:auto;"></div>
+                    <button class="btn-blue" style="margin-top:10px;" onclick="generateDistTable()">عرض التجميعة</button>
+                </div>
 
                 <!-- PDF Content Area -->
-                <div id="dist-print-area" style="background:white; padding:10px;">
-                    <div id="pdf-header" style="text-align:center; display:none; margin-bottom:15px;">
-                        <h3>بيان تحميل - Safelife</h3>
+                <div id="dist-print-area" style="background:white; padding:10px; display:none;">
+                    <div id="pdf-header" style="text-align:center; margin-bottom:15px;">
+                        <h3>أمر تحميل / توزيع</h3>
                         <div id="pdf-meta" style="font-size:12px;"></div>
                     </div>
                     
@@ -198,7 +197,7 @@
                 </div>
                 
                 <div style="display:flex; gap:10px; margin-top:15px;">
-                    <button class="btn-blue" onclick="downloadDistPDF()">📄 تحميل PDF</button>
+                    <button class="btn-green" onclick="downloadDistPDF()" id="btn-dl-pdf" style="display:none;">📄 تحميل PDF</button>
                     <button class="btn-ghost" onclick="document.getElementById('dist-summary-panel').style.display='none'">إغلاق</button>
                 </div>
             </div>
@@ -206,28 +205,59 @@
             <div id="orders-container"></div>
         </div>
 
-        <!-- Stocktake -->
+        <!-- Stocktake (FIXED: Search & Add) -->
         <div id="page-stocktake" class="page-section">
             <h3>📋 التقفيل / الجرد</h3>
             <div class="admin-panel">
                 <label>العميل:</label>
                 <input type="text" id="st-client" list="clients-datalist" placeholder="اختر العميل..." oninput="searchClients(this.value)">
-            </div>
-            <div style="overflow-x:auto; margin-bottom:15px;">
-                <table style="min-width:300px;">
-                    <thead><tr><th>الصنف</th><th>السعر (تعديل)</th><th>الكمية</th><th>الإجمالي</th></tr></thead>
-                    <tbody id="st-table-body"></tbody>
-                </table>
-            </div>
-            <div class="admin-panel" style="background:#e8f5e9;">
-                <div>الإجمالي: <span id="st-total-before">0</span></div>
-                <div style="display:flex; align-items:center; gap:5px; margin:5px 0;">
-                    <label>خصم %:</label>
-                    <input type="number" id="st-discount" style="width:60px; margin:0;" oninput="calculateStocktake()">
+                
+                <hr style="margin:15px 0;">
+                
+                <label style="font-weight:bold; color:var(--main);">إضافة صنف للجرد:</label>
+                <div style="display:flex; gap:5px;">
+                    <input type="text" id="st-search-prod" list="st-prods-list" placeholder="ابحث باسم المنتج..." onchange="prepareStItem(this.value)">
+                    <datalist id="st-prods-list"></datalist>
                 </div>
-                <div style="font-weight:bold; font-size:18px; color:green;">الصافي: <span id="st-total-after">0</span></div>
+                
+                <div id="st-entry-box" style="display:none; background:#e3f2fd; padding:10px; border-radius:8px; margin-bottom:10px;">
+                    <div style="font-weight:bold; margin-bottom:5px;" id="st-selected-name"></div>
+                    <div style="display:flex; gap:5px;">
+                        <input type="number" id="st-entry-price" placeholder="السعر">
+                        <input type="number" id="st-entry-qty" placeholder="الكمية" value="1">
+                    </div>
+                    <button class="btn-green" onclick="addStItemToTable()">⬇️ إدراج في الجدول</button>
+                </div>
             </div>
-            <button class="btn-green" onclick="saveStocktake()">حفظ التقفيلة</button>
+
+            <!-- Items Table -->
+            <div style="overflow-x:auto; margin-bottom:15px; border:1px solid #ddd; border-radius:8px;">
+                <table style="min-width:100%;">
+                    <thead id="st-table-header"><tr><th>الصنف</th><th>السعر</th><th>العدد</th><th>الإجمالي</th><th>حذف</th></tr></thead>
+                    <tbody id="st-table-body">
+                        <!-- Items will go here -->
+                    </tbody>
+                </table>
+                <div id="st-empty-msg" style="text-align:center; padding:20px; color:#999;">الجدول فارغ</div>
+            </div>
+
+            <!-- Footer Totals -->
+            <div class="admin-panel" style="background:#e8f5e9;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span>الإجمالي قبل الخصم:</span>
+                    <span id="st-total-before" style="font-weight:bold;">0</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                    <label style="margin:0;">خصم (%):</label>
+                    <input type="number" id="st-discount" style="width:80px; margin:0;" value="0" oninput="calcStTotals()">
+                </div>
+                <div style="border-top:2px solid #ccc; padding-top:10px; display:flex; justify-content:space-between; font-size:18px; color:green; font-weight:bold;">
+                    <span>الصافي النهائي:</span>
+                    <span id="st-total-after">0</span>
+                </div>
+            </div>
+            
+            <button class="btn-green" onclick="saveStocktake()">💾 حفظ التقفيلة</button>
         </div>
 
         <!-- Admin Settings -->
@@ -332,7 +362,7 @@
         let globalProducts=[], globalOrders=[], globalUsers=[];
         let globalSettings = { cats:[], lines:[], regs:[], logo:"" };
         let orderTab = 'active';
-        const DEFAULT_IMG = "https://cdn-icons-png.flaticon.com/512/2965/2965363.png";
+        let stocktakeItems = []; // Array to hold stocktake temp items
         let chartRepsInstance = null;
 
         // --- Auto Login (Remember Me) ---
@@ -415,7 +445,20 @@
             if(d.exists()){ globalSettings=d.data(); updateUI(); }
             else { setDoc(doc(db,"settings","config"), {cats:[], lines:[], regs:[]}); }
         }); }
-        function listenToProducts(){ onSnapshot(collection(db,"products"), s=>{ globalProducts=[]; s.forEach(d=>globalProducts.push({...d.data(),id:d.id})); renderProducts(); updateDashboard(); }); }
+        function listenToProducts(){ 
+            onSnapshot(collection(db,"products"), s=>{ 
+                globalProducts=[]; 
+                let stList = document.getElementById("st-prods-list");
+                if(stList) stList.innerHTML = "";
+                s.forEach(d=>{
+                    let p = {...d.data(),id:d.id};
+                    globalProducts.push(p);
+                    if(stList) stList.innerHTML += `<option value="${p.name}">`;
+                });
+                renderProducts(); 
+                updateDashboard(); 
+            }); 
+        }
         function listenToOrders(){ onSnapshot(collection(db,"orders"), s=>{ globalOrders=[]; s.forEach(d=>globalOrders.push({...d.data(),id:d.id})); updateDashboard(); renderOrders(); }); }
         function listenToUsers(){ onSnapshot(collection(db,"users"), s=>{ globalUsers=[]; s.forEach(d=>globalUsers.push({...d.data(),id:d.id})); renderUsersTable(); }); }
 
@@ -593,23 +636,40 @@
             alert("تم تسليم الفاتورة بالكامل");
         }
 
-        // --- DIST SUMMARY (FILTER & PDF) ---
-        window.showDistSummary = function() {
-            // Populate Dropdown if only default exists
-            let sel = document.getElementById("dist-filter-reg");
-            if(sel.options.length === 1 && globalSettings.regs) {
-                globalSettings.regs.forEach(r => {
-                    sel.innerHTML += `<option value="${r}">${r}</option>`;
+        // --- DIST SUMMARY (SMART FILTER & PDF) ---
+        window.initDistSummary = function() {
+            // 1. Get Unique Regions from Pending Orders
+            let pending = globalOrders.filter(o => o.status !== 'archived');
+            let regions = [...new Set(pending.map(o => o.region || "غير محدد"))];
+            
+            let container = document.getElementById("dist-regions-checks");
+            container.innerHTML = "";
+            
+            if(regions.length === 0) {
+                container.innerHTML = "<small>لا توجد طلبات حالياً في أي منطقة</small>";
+            } else {
+                regions.forEach(r => {
+                    container.innerHTML += `<label class="permission-label"><input type="checkbox" value="${r}" class="dist-reg-check"> ${r}</label>`;
                 });
             }
 
-            let selectedReg = sel.value;
-            let pending = globalOrders.filter(o => o.status !== 'archived');
-            
-            if(selectedReg !== 'all') {
-                pending = pending.filter(o => o.region === selectedReg);
-            }
+            // Show Panel
+            document.getElementById("dist-summary-panel").style.display = "block";
+            document.getElementById("dist-print-area").style.display = "none"; 
+            document.getElementById("btn-dl-pdf").style.display = "none";
+        }
 
+        window.generateDistTable = function() {
+            // 1. Get Selected Regions
+            let selectedRegs = [];
+            document.querySelectorAll(".dist-reg-check:checked").forEach(c => selectedRegs.push(c.value));
+            
+            if(selectedRegs.length === 0) return alert("اختر منطقة واحدة على الأقل");
+
+            // 2. Filter Orders
+            let pending = globalOrders.filter(o => o.status !== 'archived' && selectedRegs.includes(o.region || "غير محدد"));
+            
+            // 3. Aggregate
             let summary = {};
             pending.forEach(o => {
                 let qty = parseInt(o.qty) || 0;
@@ -617,80 +677,117 @@
                 else summary[o.product] = qty;
             });
 
+            // 4. Render Table
             let tbody = document.getElementById("dist-summary-body");
             tbody.innerHTML = "";
             for (let [prod, total] of Object.entries(summary)) {
                 tbody.innerHTML += `<tr><td style="text-align:right;">${prod}</td><td style="font-weight:bold; color:green;">${total}</td></tr>`;
             }
-            
-            // Update PDF Meta
-            document.getElementById("pdf-meta").innerText = `المنطقة: ${selectedReg === 'all' ? 'كل المناطق' : selectedReg} | التاريخ: ${new Date().toLocaleDateString()}`;
 
-            document.getElementById("dist-summary-panel").style.display = "block";
-            window.scrollTo(0,0);
+            // 5. Show
+            document.getElementById("pdf-meta").innerText = `مناطق: ${selectedRegs.join(' , ')} | التاريخ: ${new Date().toLocaleDateString()}`;
+            document.getElementById("dist-print-area").style.display = "block";
+            document.getElementById("btn-dl-pdf").style.display = "block";
         }
 
         window.downloadDistPDF = function() {
             const element = document.getElementById('dist-print-area');
-            document.getElementById('pdf-header').style.display = 'block'; // Show Header
-            
             var opt = {
                 margin:       0.2,
-                filename:     'Safelife_Distribution.pdf',
+                filename:     'Safelife_Load_Order.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2 },
                 jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
-
-            html2pdf().set(opt).from(element).save().then(() => {
-                 document.getElementById('pdf-header').style.display = 'none'; // Hide again
-            });
+            html2pdf().set(opt).from(element).save();
         }
 
         window.setOrderTab = function(t){ orderTab=t; document.querySelectorAll("#page-orders button").forEach(b=>b.classList.remove("btn-blue")); event.target.classList.add("btn-blue"); renderOrders(); }
 
-        // --- Stocktake ---
-        window.renderStocktakeForm = function() {
-            let tbody = document.getElementById("st-table-body"); tbody.innerHTML = "";
-            globalProducts.forEach(p => {
-                tbody.innerHTML += `
-                <tr>
-                    <td style="text-align:right">${p.name}</td>
-                    <td><input type="number" class="price-input" value="${p.price}" onchange="calculateStocktake()" id="st-price-${p.id}" style="width:60px; margin:0;"></td>
-                    <td><input type="number" class="st-qty-input" data-id="${p.id}" style="width:50px" oninput="calculateStocktake()"></td>
-                    <td id="st-row-total-${p.id}">0</td>
-                </tr>`;
-            });
+        // --- NEW STOCKTAKE LOGIC (Cashier Style) ---
+        window.prepareStItem = function(val) {
+            let p = globalProducts.find(x => x.name === val);
+            if(p) {
+                document.getElementById("st-selected-name").innerText = p.name;
+                document.getElementById("st-entry-price").value = p.price;
+                document.getElementById("st-entry-box").style.display = "block";
+                document.getElementById("st-entry-box").dataset.id = p.id;
+            }
         }
-        window.calculateStocktake = function() {
-            let totalBefore = 0;
-            document.querySelectorAll(".st-qty-input").forEach(inp => {
-                let id = inp.dataset.id;
-                let qty = parseInt(inp.value) || 0;
-                let price = parseFloat(document.getElementById(`st-price-${id}`).value);
-                let rowTot = qty * price;
-                document.getElementById(`st-row-total-${id}`).innerText = rowTot.toFixed(1);
-                totalBefore += rowTot;
-            });
-            document.getElementById("st-total-before").innerText = totalBefore;
+
+        window.addStItemToTable = function() {
+            let name = document.getElementById("st-selected-name").innerText;
+            let price = parseFloat(document.getElementById("st-entry-price").value);
+            let qty = parseInt(document.getElementById("st-entry-qty").value);
+            let id = document.getElementById("st-entry-box").dataset.id;
+            
+            if(qty > 0) {
+                stocktakeItems.push({id, name, price, qty});
+                renderStTable();
+                
+                // Reset
+                document.getElementById("st-search-prod").value = "";
+                document.getElementById("st-entry-box").style.display = "none";
+                document.getElementById("st-entry-qty").value = 1;
+            }
+        }
+
+        window.removeStItem = function(idx) {
+            stocktakeItems.splice(idx, 1);
+            renderStTable();
+        }
+
+        window.renderStTable = function() {
+            let tbody = document.getElementById("st-table-body");
+            tbody.innerHTML = "";
+            
+            if(stocktakeItems.length === 0) {
+                document.getElementById("st-empty-msg").style.display = "block";
+            } else {
+                document.getElementById("st-empty-msg").style.display = "none";
+                stocktakeItems.forEach((item, index) => {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td style="text-align:right">${item.name}</td>
+                        <td>${item.price}</td>
+                        <td>${item.qty}</td>
+                        <td>${(item.price * item.qty).toFixed(1)}</td>
+                        <td><span class="st-del-btn" onclick="removeStItem(${index})">x</span></td>
+                    </tr>`;
+                });
+            }
+            calcStTotals();
+        }
+
+        window.calcStTotals = function() {
+            let total = stocktakeItems.reduce((acc, curr) => acc + (curr.price * curr.qty), 0);
+            document.getElementById("st-total-before").innerText = total.toFixed(1);
+            
             let disc = parseFloat(document.getElementById("st-discount").value) || 0;
-            document.getElementById("st-total-after").innerText = (totalBefore - (totalBefore * disc / 100)).toFixed(1);
+            let final = total - (total * disc / 100);
+            document.getElementById("st-total-after").innerText = final.toFixed(1);
         }
+
         window.saveStocktake = async function() {
             let client = document.getElementById("st-client").value;
             if(!client) return alert("اختر العميل");
-            let items = [];
-            document.querySelectorAll(".st-qty-input").forEach(inp => {
-                if(inp.value > 0) {
-                    let id = inp.dataset.id;
-                    let price = document.getElementById(`st-price-${id}`).value;
-                    let pName = globalProducts.find(x=>x.id===id).name;
-                    items.push({name: pName, qty: inp.value, price: price});
-                }
+            if(stocktakeItems.length === 0) return alert("الجدول فارغ");
+            
+            showLoader(true, "حفظ الجرد...");
+            await addDoc(collection(db, "stocktakes"), { 
+                client, 
+                user: currentUser.user, 
+                date: new Date().toLocaleDateString(), 
+                items: stocktakeItems,
+                total: document.getElementById("st-total-after").innerText 
             });
-            if(items.length===0) return alert("أدخل كميات");
-            await addDoc(collection(db, "stocktakes"), { client, user: currentUser.user, date: new Date().toLocaleDateString(), items });
+            showLoader(false);
             alert("تم الحفظ");
+            
+            // Clear
+            stocktakeItems = [];
+            renderStTable();
+            document.getElementById("st-client").value = "";
         }
 
         // --- Admin Functions ---
@@ -814,7 +911,9 @@
 
         window.updateDashboard = function() {
             if(!document.getElementById("page-dashboard")) return;
+            document.getElementById("dash-total-sales").innerText = globalOrders.length;
             document.getElementById("dash-total-orders").innerText = globalOrders.length;
+            
             let ctx = document.getElementById("chart-reps").getContext('2d');
             if(chartRepsInstance) chartRepsInstance.destroy();
             let repData = {}; 
@@ -831,7 +930,6 @@
             document.querySelectorAll('.bottom-nav button').forEach(b=>b.classList.remove('active'));
             if(document.getElementById('btn-'+p)) document.getElementById('btn-'+p).classList.add('active');
             if(p==='orders') renderOrders();
-            if(p==='stocktake') renderStocktakeForm();
             if(p==='dashboard') updateDashboard();
         }
 
