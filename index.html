@@ -5,29 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V35 (Fixed Layout)</title>
+    <title>Safelife - V36 (Smart Edition)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
         :root { --main: #1e3c72; --sec: #2a5298; --accent: #ffc107; --green: #2ecc71; --bg: #f4f7f6; }
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; font-family: 'Cairo', sans-serif; background-color: var(--bg); padding-bottom: 90px; color: #333; }
 
-        /* Login Screen */
+        /* Helpers */
+        .hidden { display: none !important; }
+        .flex { display: flex; align-items: center; gap: 5px; }
+        
+        /* Login */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
         .login-box { background: rgba(255, 255, 255, 0.95); padding: 40px 30px; border-radius: 20px; width: 100%; max-width: 380px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
 
         /* Loader */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 100000; display: none; flex-direction: column; justify-content: center; align-items: center; }
-        #loader-text { margin-top: 10px; color: var(--main); font-weight: bold; }
 
-        /* App Structure */
+        /* Main Layout */
         #main-app { display: none; }
         header { background: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
         
@@ -35,31 +36,26 @@
         .active-page { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Cards & Grids */
+        /* Components */
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; flex-direction: column; }
-        .card-img-wrap { width: 100%; height: 130px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 5px; }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; flex-direction: column; position: relative; }
+        .card-img-wrap { width: 100%; height: 120px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 5px; }
         .card-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .card-body { padding: 10px; text-align: right; flex-grow: 1; }
+        .card-body { padding: 8px; text-align: right; flex-grow: 1; }
         
-        /* Dashboard */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-card { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .stat-num { font-size: 20px; font-weight: bold; color: var(--main); }
-        
+        .order-card { background: white; border-right: 4px solid var(--main); padding: 12px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .admin-panel { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
+
         /* Inputs & Buttons */
-        input, select, textarea { padding: 10px; border: 1px solid #ddd; border-radius: 8px; width: 100%; margin-bottom: 8px; font-family: 'Cairo'; font-size: 14px; }
-        button { cursor: pointer; border:none; border-radius:8px; padding:10px; font-family: 'Cairo'; font-weight: bold; width:100%; margin-bottom:5px; }
+        input, select, textarea { padding: 8px; border: 1px solid #ddd; border-radius: 6px; width: 100%; margin-bottom: 8px; font-family: 'Cairo'; font-size: 14px; }
+        button { cursor: pointer; border:none; border-radius:6px; padding:10px; font-family: 'Cairo'; font-weight: bold; width:100%; margin-bottom:5px; }
         .btn-green { background: var(--green); color: white; }
         .btn-red { background: #e74c3c; color: white; width:auto; padding:5px 15px; }
         .btn-blue { background: var(--main); color: white; }
-        .btn-warning { background: #f39c12; color: white; }
         .btn-ghost { background: #eee; color: #333; }
-
-        /* Admin Panels */
-        .admin-panel { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
-        .user-card { background: white; padding: 10px; border-radius: 8px; margin-bottom: 5px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .check-group { text-align: right; max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 5px; background: #fff; }
+        
+        /* Special Inputs */
+        .price-input { border: 1px solid #f39c12; background: #fffdf5; font-weight: bold; color: #d35400; text-align: center; }
 
         /* Nav */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 999; border-top: 1px solid #eee; height: 60px; }
@@ -67,7 +63,6 @@
         .bottom-nav button.active { color: var(--main); }
         .bottom-nav button span { font-size: 20px; margin-bottom: 2px; }
 
-        /* Tables */
         table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }
         th, td { border: 1px solid #ddd; padding: 8px; }
         th { background: #f0f0f0; }
@@ -77,19 +72,16 @@
 
     <div id="loader">
         <div style="font-size:30px; margin-bottom:10px;">↻</div>
-        <h3 style="color:var(--main);">جاري الاتصال...</h3>
-        <div id="loader-text" style="font-size:12px;"></div>
+        <h3 style="color:var(--main);">جاري العمل...</h3>
     </div>
 
     <!-- Login -->
     <div id="login-screen">
         <div class="login-box">
-            <img id="app-logo-login" src="https://i.ibb.co/ZRmWMKvR/logo-cmyk-page-0001.jpg" style="width: 180px; margin-bottom: 20px;">
-            <h3 style="color:var(--main);">بوابة الموظفين</h3>
-            <input type="text" id="l-user" placeholder="اسم المستخدم">
-            <input type="password" id="l-pass" placeholder="كلمة المرور">
+            <h2 style="color:var(--main);">Safelife Login</h2>
+            <input type="text" id="l-user" placeholder="اسم المستخدم (admin)">
+            <input type="password" id="l-pass" placeholder="كلمة المرور (123)">
             <button class="btn-green" onclick="login()">دخول</button>
-            <button class="btn-ghost" onclick="startApp({user:'زائر', region:'none', lines:['all'], isAdmin:false})">دخول زائر</button>
             <p id="error-msg" style="color:#e74c3c; display:none; margin-top:10px;">بيانات خاطئة</p>
         </div>
     </div>
@@ -97,22 +89,24 @@
     <!-- Main App -->
     <div id="main-app">
         <header>
-            <img id="app-logo-header" src="https://i.ibb.co/ZRmWMKvR/logo-cmyk-page-0001.jpg" style="height:35px;">
-            <span id="head-user" style="font-size:12px; font-weight:bold;"></span>
-            <button class="btn-red" onclick="location.reload()">خروج</button>
+            <div style="font-weight:bold; color:var(--main);">Safelife System</div>
+            <div class="flex">
+                <span id="head-user" style="font-size:12px; font-weight:bold;"></span>
+                <button class="btn-red" onclick="location.reload()">خروج</button>
+            </div>
         </header>
 
         <!-- Dashboard -->
         <div id="page-dashboard" class="page-section active-page">
             <h3>📊 لوحة القيادة</h3>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-num" id="dash-total-sales">0</div>
-                    <div style="font-size:12px; color:#777">إجمالي المبيعات</div>
+            <div class="grid-container">
+                <div class="admin-panel" style="text-align:center;">
+                    <div style="font-size:20px; font-weight:bold; color:var(--main);" id="dash-sales">0</div>
+                    <small>الطلبات</small>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-num" id="dash-total-orders">0</div>
-                    <div style="font-size:12px; color:#777">عدد الطلبات</div>
+                <div class="admin-panel" style="text-align:center;">
+                    <div style="font-size:20px; font-weight:bold; color:var(--green);" id="dash-prods">0</div>
+                    <small>المنتجات</small>
                 </div>
             </div>
             <div class="admin-panel">
@@ -121,30 +115,32 @@
             </div>
         </div>
 
-        <!-- Products -->
+        <!-- Products (Ordering) -->
         <div id="page-products" class="page-section">
-            <div class="admin-panel" style="border: 2px solid var(--accent);">
-                <label>العميل:</label>
-                <input type="text" id="current-client" list="clients-datalist" placeholder="اكتب للبحث..." oninput="searchClients(this.value)">
-                <datalist id="clients-datalist"></datalist>
-                <input type="text" id="manual-location" placeholder="وصف العنوان...">
-                <input type="text" id="order-notes" placeholder="ملاحظات...">
+            <div class="admin-panel" style="border: 2px solid var(--sec);">
+                <label style="font-size:12px; color:#777;">بيانات الزيارة:</label>
+                <input type="text" id="current-client" list="clients-list" placeholder="اسم العميل (بحث)..." oninput="searchClients(this.value)">
+                <datalist id="clients-list"></datalist>
+                
+                <div class="flex">
+                    <input type="text" id="order-location" placeholder="العنوان / اللوكيشن" style="margin:0;">
+                    <button class="btn-ghost" style="width:50px; margin:0;" onclick="getGPS()">📍</button>
+                </div>
             </div>
 
-            <!-- Admin Add Product -->
-            <div id="admin-tools" class="admin-panel" style="display:none; background:#fff8e1;">
-                <h4>+ منتج جديد</h4>
+            <!-- Admin Tools -->
+            <div id="admin-tools" class="admin-panel hidden" style="background:#fff8e1;">
+                <h4>+ إضافة منتج</h4>
                 <input type="hidden" id="edit-id">
-                <input type="text" id="np-name" placeholder="الاسم">
-                <div style="display:flex; gap:5px;">
-                    <select id="np-cat"></select> <select id="np-salesline"></select>
+                <input type="text" id="np-name" placeholder="اسم المنتج">
+                <div class="flex">
+                    <input type="number" id="np-price" placeholder="السعر الافتراضي">
+                    <input type="text" id="np-cat" placeholder="القسم">
                 </div>
-                <input type="text" id="np-desc" placeholder="وصف">
                 <input type="text" id="np-img" placeholder="رابط الصورة">
-                <input type="number" id="np-price" placeholder="السعر">
-                <div style="display:flex; gap:5px;">
+                <div class="flex">
                     <button class="btn-green" onclick="saveProduct()">حفظ</button>
-                    <button class="btn-ghost" onclick="cancelEditProd()" style="display:none;" id="btn-cancel-prod">إلغاء</button>
+                    <button class="btn-red hidden" id="btn-cancel" onclick="cancelEdit()">إلغاء</button>
                 </div>
             </div>
 
@@ -153,133 +149,59 @@
 
         <!-- Orders -->
         <div id="page-orders" class="page-section">
-            <div style="display:flex; gap:5px; margin-bottom:10px;">
-                <button class="btn-blue" onclick="setOrderTab('active')">الطلبات الحالية</button>
-                <button class="btn-ghost" onclick="setOrderTab('history')" id="btn-history-tab">الأرشيف</button>
+            <div class="flex" style="margin-bottom:10px;">
+                <button class="btn-blue" onclick="setTab('active')">الطلبات الحالية</button>
+                <button class="btn-ghost" onclick="setTab('history')">الأرشيف</button>
             </div>
             <div id="orders-container"></div>
         </div>
 
         <!-- Stocktake -->
         <div id="page-stocktake" class="page-section">
-            <h3>📋 التقفيل / الجرد</h3>
-            <div class="admin-panel">
-                <label>العميل:</label>
-                <input type="text" id="st-client" list="clients-datalist" placeholder="اختر العميل..." oninput="searchClients(this.value)">
-            </div>
-            <div style="overflow-x:auto; margin-bottom:15px;">
-                <table style="min-width:300px;">
-                    <thead><tr><th>الصنف</th><th>السعر</th><th>الكمية</th><th>الإجمالي</th></tr></thead>
+            <h3>📋 الجرد / التقفيل</h3>
+            <input type="text" id="st-client" placeholder="اسم العميل للجرد...">
+            <div style="overflow-x:auto;">
+                <table style="min-width:100%;">
+                    <thead><tr><th>الصنف</th><th>السعر (تعديل)</th><th>الكمية</th><th>الإجمالي</th></tr></thead>
                     <tbody id="st-table-body"></tbody>
                 </table>
             </div>
-            <div class="admin-panel" style="background:#e8f5e9;">
-                <div>الإجمالي: <span id="st-total-before">0</span></div>
-                <div style="display:flex; align-items:center; gap:5px; margin:5px 0;">
-                    <label>خصم %:</label>
-                    <input type="number" id="st-discount" style="width:60px; margin:0;" oninput="calculateStocktake()">
+            <div class="admin-panel" style="margin-top:10px; background:#e8f5e9;">
+                <div class="flex" style="justify-content:space-between;">
+                    <b>الإجمالي: <span id="st-total">0</span></b>
+                    <button class="btn-green" style="width:auto;" onclick="saveStocktake()">حفظ الجرد</button>
                 </div>
-                <div style="font-weight:bold; font-size:18px; color:green;">الصافي: <span id="st-total-after">0</span></div>
             </div>
-            <button class="btn-green" onclick="saveStocktake()">حفظ التقفيلة</button>
         </div>
 
-        <!-- Admin Settings -->
+        <!-- Admin Users -->
         <div id="page-admin" class="page-section">
-            <h3>⚙️ الإعدادات</h3>
-            
-            <!-- Import -->
+            <h3>⚙️ إدارة المستخدمين</h3>
             <div class="admin-panel">
-                <h4 style="color:green;">📥 استيراد عملاء (Excel)</h4>
-                <div style="display:flex; gap:5px;">
-                    <input type="file" id="file-clients" accept=".xlsx,.xls">
-                    <button class="btn-green" onclick="importClients()">رفع</button>
-                </div>
-                <div id="upload-status" style="margin-top:5px; color:blue; font-size:12px;"></div>
-                <hr style="margin:10px 0;">
-                <div style="display:flex; gap:5px;">
-                    <input type="text" id="single-client-name" placeholder="اسم عميل جديد">
-                    <button class="btn-green" onclick="addSingleClient()">إضافة</button>
-                </div>
-            </div>
-
-            <!-- Maintenance -->
-            <div class="admin-panel" style="border:2px solid orange;">
-                <h4 style="color:orange;">⚠️ أدوات الصيانة</h4>
-                <div id="cleanup-status" style="color:red; font-size:12px;"></div>
-                <button class="btn-warning" onclick="cleanDuplicateClients()">تنظيف تكرار العملاء</button>
-                <button class="btn-warning" onclick="cleanDuplicateProducts()">تنظيف تكرار المنتجات</button>
-            </div>
-
-            <!-- Settings -->
-            <div class="admin-panel">
-                <h4>شعار النظام</h4>
-                <div style="display:flex; gap:5px;">
-                    <input type="text" id="sys-logo-url" placeholder="رابط الصورة">
-                    <button class="btn-green" onclick="saveLogo()">حفظ</button>
-                </div>
-            </div>
-
-            <!-- Lists -->
-            <div class="admin-panel">
-                <h4>القوائم</h4>
-                <div style="display:flex; gap:5px;">
-                    <select id="sys-type"><option value="cats">قسم</option><option value="lines">لاين</option><option value="regs">منطقة</option></select>
-                    <input type="text" id="sys-val" placeholder="الاسم">
-                    <button class="btn-green" onclick="addSysItem()">+</button>
-                </div>
-                <div id="sys-lists-container" style="margin-top:10px; font-size:12px;"></div>
-            </div>
-
-            <!-- Users -->
-            <div class="admin-panel" id="user-form-panel">
-                <h4 id="user-form-title">إضافة / تعديل مستخدم</h4>
-                <input type="hidden" id="edit-user-id">
-                <input type="text" id="u-name" placeholder="اسم المستخدم">
+                <input type="text" id="u-name" placeholder="اسم المستخدم الجديد">
                 <input type="text" id="u-pass" placeholder="كلمة المرور">
-                <input type="text" id="u-job" placeholder="المسمى الوظيفي">
-                <label>المنطقة:</label><select id="u-reg-select"></select>
-                
-                <label style="font-weight:bold; margin-top:10px; display:block;">اللاينات:</label>
-                <div class="check-group" id="u-lines-check"></div>
-
-                <div style="background:#f9f9f9; padding:10px; border-radius:5px; margin-top:5px;">
-                    <label><input type="checkbox" id="perm-admin"> أدمن كامل</label><br>
-                    <label><input type="checkbox" id="perm-price"> تعديل منتجات</label><br>
-                    <label><input type="checkbox" id="perm-report"> تقارير</label><br>
-                    <label><input type="checkbox" id="perm-deliver"> مندوب توزيع</label><br>
-                    <label><input type="checkbox" id="perm-stocktake"> جرد / تقفيل</label><br>
-                    <label><input type="checkbox" id="perm-archive"> أرشيف</label><br>
-                    <hr>
-                    <label><input type="checkbox" id="perm-linemanager" onchange="toggleLineMgr()"> مشرف لاين</label>
-                    <div id="mgr-regions-box" style="display:none; margin-top:5px;">
-                        <small>مناطق الإشراف:</small>
-                        <div class="check-group" id="u-mgr-regions"></div>
-                    </div>
+                <div class="flex" style="margin-top:5px;">
+                    <label><input type="checkbox" id="u-admin"> أدمن</label>
+                    <label><input type="checkbox" id="u-dist"> موزع</label>
                 </div>
-                
-                <div style="display:flex; gap:5px; margin-top:15px;">
-                    <button class="btn-green" onclick="saveUser()">حفظ المستخدم</button>
-                    <button class="btn-ghost" id="btn-cancel-user" onclick="cancelEditUser()" style="display:none;">إلغاء</button>
-                </div>
+                <button class="btn-green" onclick="addUser()">إضافة مستخدم</button>
             </div>
-
-            <h4>المستخدمين الحاليين</h4>
             <div id="users-list"></div>
         </div>
 
+        <!-- Navigation -->
         <div class="bottom-nav">
-            <button onclick="nav('dashboard')" id="btn-dashboard"><span>🏠</span>الرئيسية</button>
-            <button onclick="nav('products')" id="btn-products"><span>💊</span>المنتجات</button>
-            <button onclick="nav('orders')" id="btn-orders"><span>📝</span>الطلبات</button>
-            <button onclick="nav('stocktake')" id="btn-stocktake" style="display:none;"><span>📋</span>التقفيل</button>
-            <button onclick="nav('admin')" id="btn-admin" style="display:none;"><span>⚙️</span>الإعدادات</button>
+            <button onclick="nav('dashboard')" id="nav-dashboard"><span>🏠</span>الرئيسية</button>
+            <button onclick="nav('products')" id="nav-products"><span>💊</span>المنتجات</button>
+            <button onclick="nav('orders')" id="nav-orders"><span>📝</span>الطلبات</button>
+            <button onclick="nav('stocktake')" id="nav-stocktake" class="hidden"><span>📋</span>الجرد</button>
+            <button onclick="nav('admin')" id="nav-admin" class="hidden"><span>⚙️</span>الإعدادات</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where, writeBatch, limit } 
+        import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, onSnapshot, query, where } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -296,18 +218,20 @@
 
         let currentUser = null;
         let globalProducts=[], globalOrders=[], globalUsers=[];
-        let globalSettings = { cats:[], lines:[], regs:[], logo:"" };
-        let activeCat='all', activeLine='all';
         let orderTab = 'active';
-        const DEFAULT_IMG = "https://cdn-icons-png.flaticon.com/512/2965/2965363.png";
-        
-        let chartRepsInstance = null;
 
-        // Login
+        // --- Auth ---
         window.login = async function() {
             let u = document.getElementById("l-user").value;
             let p = document.getElementById("l-pass").value;
-            showLoader(true, "دخول...");
+            showLoader(true);
+            
+            // دخول طوارئ للأدمن الأول
+            if(u === 'admin' && p === '123') {
+                startApp({user:'Admin', isAdmin:true, canStocktake:true});
+                return;
+            }
+
             try {
                 const q = query(collection(db,"users"), where("user","==",u), where("pass","==",p));
                 const snap = await getDocs(q);
@@ -318,245 +242,284 @@
                     document.getElementById("error-msg").style.display="block";
                     showLoader(false);
                 }
-            } catch(e) { alert("Error: "+e.message); showLoader(false); }
+            } catch(e) { alert("خطأ اتصال"); showLoader(false); }
         }
 
-        window.startApp = function(user) {
+        function startApp(user) {
             currentUser = user;
             document.getElementById("login-screen").style.display = "none";
             document.getElementById("main-app").style.display = "block";
             document.getElementById("head-user").innerText = user.user;
 
-            let isVisitor = (user.user === "زائر");
-            document.getElementById("btn-admin").style.display = user.isAdmin ? "flex" : "none";
-            document.getElementById("admin-tools").style.display = (user.isAdmin || user.canPrice) ? "block" : "none";
-            
-            let canStocktake = user.isAdmin || user.canStocktake;
-            document.getElementById("btn-stocktake").style.display = canStocktake ? "flex" : "none";
+            // Permissions
+            if(user.isAdmin) {
+                document.getElementById("admin-tools").classList.remove("hidden");
+                document.getElementById("nav-admin").classList.remove("hidden");
+                document.getElementById("nav-stocktake").classList.remove("hidden");
+                listenToUsers();
+            }
+            if(user.canStocktake) document.getElementById("nav-stocktake").classList.remove("hidden");
 
-            document.getElementById("btn-orders").style.display = isVisitor ? "none" : "flex";
-
-            listenToProducts(); listenToOrders(); listenToSettings();
-            if(user.isAdmin) listenToUsers();
-            
+            // Listeners
+            listenToProducts();
+            listenToOrders();
             nav('dashboard');
             showLoader(false);
         }
 
-        // Listeners
-        function listenToSettings(){ onSnapshot(doc(db,"settings","config"), d=>{ if(d.exists()){ globalSettings=d.data(); updateUI(); } }); }
+        // --- Data Listeners ---
         function listenToProducts(){ onSnapshot(collection(db,"products"), s=>{ globalProducts=[]; s.forEach(d=>globalProducts.push({...d.data(),id:d.id})); renderProducts(); }); }
-        function listenToOrders(){ onSnapshot(collection(db,"orders"), s=>{ globalOrders=[]; s.forEach(d=>globalOrders.push({...d.data(),id:d.id})); updateDashboard(); renderOrders(); }); }
-        function listenToUsers(){ onSnapshot(collection(db,"users"), s=>{ globalUsers=[]; s.forEach(d=>globalUsers.push({...d.data(),id:d.id})); renderUsersTable(); }); }
+        function listenToOrders(){ onSnapshot(collection(db,"orders"), s=>{ globalOrders=[]; s.forEach(d=>globalOrders.push({...d.data(),id:d.id})); renderOrders(); updateDash(); }); }
+        function listenToUsers(){ onSnapshot(collection(db,"users"), s=>{ globalUsers=[]; s.forEach(d=>globalUsers.push({...d.data(),id:d.id})); renderUsers(); }); }
 
-        // Core Functions
-        window.searchClients = async function(val) {
-            let dl = document.getElementById("clients-datalist");
-            dl.innerHTML = "";
-            if(!val || val.length < 2) return;
-            try {
-                const q = query(collection(db, "clients"), where('name', '>=', val), where('name', '<=', val + '\uf8ff'), limit(10));
-                const snap = await getDocs(q);
-                snap.forEach(doc => { dl.innerHTML += `<option value="${doc.data().name}">`; });
-            } catch(e) { console.error(e); }
-        }
+        // --- Product Logic (With Editable Price) ---
+        window.saveProduct = async function() {
+            let name = document.getElementById("np-name").value;
+            let price = document.getElementById("np-price").value;
+            let id = document.getElementById("edit-id").value;
+            if(!name) return;
 
-        function updateUI() {
-            if(globalSettings.logo) {
-                document.getElementById("app-logo-login").src = globalSettings.logo;
-                document.getElementById("app-logo-header").src = globalSettings.logo;
-            }
-            let npCat=document.getElementById("np-cat"), npLine=document.getElementById("np-salesline"), uReg=document.getElementById("u-reg-select");
-            if(npCat) npCat.innerHTML=(globalSettings.cats||[]).map(c=>`<option value="${c}">${c}</option>`).join("");
-            if(npLine) npLine.innerHTML=(globalSettings.lines||[]).map(l=>`<option value="${l}">${l}</option>`).join("");
-            if(uReg) uReg.innerHTML=(globalSettings.regs||[]).map(r=>`<option>${r}</option>`).join("");
+            let data = { 
+                name, price, 
+                cat: document.getElementById("np-cat").value,
+                img: document.getElementById("np-img").value 
+            };
+
+            if(id) await updateDoc(doc(db,"products",id), data);
+            else await addDoc(collection(db,"products"), data);
             
-            if(currentUser && currentUser.isAdmin) renderAdminLists();
+            cancelEdit();
         }
 
-        function renderProducts() {
+        window.renderProducts = function() {
             let div = document.getElementById("products-container"); div.innerHTML = "";
+            let stBody = document.getElementById("st-table-body"); if(stBody) stBody.innerHTML = "";
+
             globalProducts.forEach(p => {
-                let img = p.img?p.img:DEFAULT_IMG;
-                let btns = "";
-                if(currentUser && currentUser.user!=="زائر") {
-                    if(currentUser.isAdmin || currentUser.canPrice) {
-                        btns=`<div style="position:absolute; top:5px; left:5px;">
-                        <button style="background:#eee; width:30px; padding:2px;" onclick="editProd('${p.id}')">✏️</button>
-                        <button style="background:#ffeeba; width:30px; padding:2px; color:red;" onclick="delP('${p.id}')">x</button></div>`;
-                    }
-                }
+                let img = p.img || "https://cdn-icons-png.flaticon.com/512/2965/2965363.png";
+                
+                // 1. Render Product Card (For Orders)
+                let adminBtns = currentUser.isAdmin ? `<button onclick="editProd('${p.id}')" style="position:absolute;top:5px;left:5px;width:30px;padding:2px;background:#eee;">✏️</button>` : '';
+                
                 div.innerHTML += `
                 <div class="card">
-                    ${btns}
+                    ${adminBtns}
                     <div class="card-img-wrap"><img src="${img}"></div>
                     <div class="card-body">
-                        <div class="prod-title">${p.name}</div>
-                        <div class="prod-price" style="margin-top:5px; color:green; font-weight:bold;">${p.price} ج.م</div>
-                        <div class="qty-row">
-                            <input type="number" value="1" min="1" class="qty-input" id="qty-${p.id}">
-                            <button class="add-btn" onclick="mkOrd('${p.id}')">إضافة</button>
+                        <div style="font-weight:bold; font-size:15px; margin-bottom:5px;">${p.name}</div>
+                        
+                        <!-- Editable Price Input -->
+                        <div class="flex" style="margin-bottom:5px;">
+                            <label style="font-size:12px;">السعر:</label>
+                            <input type="number" class="price-input" id="price-${p.id}" value="${p.price}" style="margin:0;">
+                        </div>
+
+                        <div class="flex">
+                            <input type="number" id="qty-${p.id}" value="1" style="width:50px; text-align:center; margin:0;">
+                            <button class="btn-green" style="margin:0; padding:8px;" onclick="mkOrd('${p.id}')">طلب</button>
                         </div>
                     </div>
+                </div>`;
+
+                // 2. Render Stocktake Row (Also Editable)
+                if(stBody) {
+                    stBody.innerHTML += `
+                    <tr>
+                        <td style="text-align:right">${p.name}</td>
+                        <td><input type="number" class="price-input" value="${p.price}" data-id="${p.id}" onchange="calcStock()" style="width:60px; margin:0;"></td>
+                        <td><input type="number" class="st-qty" data-id="${p.id}" oninput="calcStock()" style="width:50px; margin:0;"></td>
+                        <td id="st-sum-${p.id}">0</td>
+                    </tr>`;
+                }
+            });
+        }
+
+        window.editProd = function(id) {
+            let p = globalProducts.find(x=>x.id===id);
+            document.getElementById("edit-id").value = id;
+            document.getElementById("np-name").value = p.name;
+            document.getElementById("np-price").value = p.price;
+            document.getElementById("np-cat").value = p.cat;
+            document.getElementById("np-img").value = p.img;
+            document.getElementById("admin-tools").classList.remove("hidden");
+            document.getElementById("btn-cancel").classList.remove("hidden");
+            window.scrollTo(0,0);
+        }
+        window.cancelEdit = function() {
+            document.getElementById("edit-id").value = "";
+            document.getElementById("np-name").value = "";
+            document.getElementById("np-price").value = "";
+            document.getElementById("btn-cancel").classList.add("hidden");
+            if(!currentUser.isAdmin) document.getElementById("admin-tools").classList.add("hidden");
+        }
+
+        // --- Order Logic (Location & Manual Price) ---
+        window.getGPS = function() {
+            if(navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    document.getElementById("order-location").value = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+                }, () => alert("تعذر تحديد الموقع"));
+            } else alert("جهازك لا يدعم GPS");
+        }
+
+        window.mkOrd = async function(pid) {
+            let client = document.getElementById("current-client").value;
+            let location = document.getElementById("order-location").value;
+            let qty = document.getElementById("qty-"+pid).value;
+            let customPrice = document.getElementById("price-"+pid).value; // Get the user-edited price
+            let p = globalProducts.find(x=>x.id===pid);
+
+            if(!client) return alert("اكتب اسم العميل أولاً");
+            if(qty < 1) return;
+
+            showLoader(true);
+            await addDoc(collection(db, "orders"), {
+                product: p.name,
+                price: customPrice, // Save the edited price
+                qty: qty,
+                total: qty * customPrice,
+                client: client,
+                location: location || "غير محدد",
+                user: currentUser.user,
+                date: new Date().toLocaleDateString(),
+                timestamp: Date.now(),
+                status: 'pending'
+            });
+            showLoader(false);
+            alert("تم الطلب");
+        }
+
+        // --- Orders List & Delivery Note ---
+        window.setTab = function(t) {
+            orderTab = t; 
+            renderOrders();
+            // Toggle active styling manually if needed
+        }
+
+        window.renderOrders = function() {
+            let div = document.getElementById("orders-container"); div.innerHTML = "";
+            let list = globalOrders.filter(o => orderTab==='active' ? o.status!=='archived' : o.status==='archived');
+            list.sort((a,b) => b.timestamp - a.timestamp);
+
+            list.forEach(o => {
+                let actionBtn = "";
+                // زر التسليم يظهر فقط في التبويب النشط
+                if(o.status !== 'archived') {
+                    actionBtn = `<button class="btn-green" style="padding:5px 10px; width:auto; font-size:12px;" onclick="deliverOrder('${o.id}')">تسليم 🚚</button>`;
+                } else {
+                    // في الأرشيف نعرض الملاحظة
+                    actionBtn = `<div style="font-size:11px; color:#d35400;">${o.deliveryNote || "تم التسليم"}</div>`;
+                }
+
+                div.innerHTML += `
+                <div class="order-card">
+                    <div style="display:flex; justify-content:space-between;">
+                        <div style="font-weight:bold;">${o.client}</div>
+                        <div style="font-size:12px; color:#777;">${o.date}</div>
+                    </div>
+                    <div style="font-size:12px; color:#555; margin-bottom:5px;">📍 ${o.location}</div>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:#f9f9f9; padding:5px; border-radius:5px;">
+                        <div>
+                            <div>${o.product}</div>
+                            <small>عدد: ${o.qty} × سعر: ${o.price}</small>
+                        </div>
+                        <div style="text-align:left;">
+                            <div style="font-weight:bold; color:var(--main);">${o.total} ج.م</div>
+                            ${actionBtn}
+                        </div>
+                    </div>
+                    <div style="font-size:11px; color:#999; margin-top:5px;">بواسطة: ${o.user}</div>
                 </div>`;
             });
         }
 
-        window.mkOrd = async function(pid) {
-            let p = globalProducts.find(x=>x.id===pid);
-            let qty = document.getElementById(`qty-${pid}`).value;
-            let client = document.getElementById("current-client").value;
-            if(!client) return alert("اكتب اسم العميل");
+        window.deliverOrder = async function(id) {
+            // طلب ملاحظة عند التوصيل
+            let note = prompt("هل توجد ملاحظات على التوصيل؟ (مثال: صنف ناقص، العميل رفض..)\nاتركه فارغاً إذا تم التسليم بنجاح.");
             
-            showLoader(true, "جاري الطلب...");
-            await addDoc(collection(db,"orders"), {
-                product: p.name, price: p.price, qty: qty, total: p.price*qty,
-                client: client, user: currentUser.user, region: currentUser.region,
-                date: new Date().toLocaleDateString(), status: 'pending'
+            if(note === null) return; // User cancelled
+
+            showLoader(true);
+            await updateDoc(doc(db,"orders",id), {
+                status: 'archived',
+                deliveryNote: note || "تم التسليم بنجاح"
             });
             showLoader(false);
-            alert("تم");
         }
 
-        // Stocktake
-        window.calculateStocktake = function() {
-            let rows = document.querySelectorAll(".st-qty-input");
-            let totalBefore = 0;
-            rows.forEach(inp => {
-                let qty = parseInt(inp.value) || 0;
-                let price = parseFloat(inp.dataset.price);
-                totalBefore += (qty * price);
-                document.getElementById(`st-row-total-${inp.dataset.id}`).innerText = (qty * price).toFixed(1);
+        // --- Stocktake Calculation ---
+        window.calcStock = function() {
+            let total = 0;
+            document.querySelectorAll("#st-table-body tr").forEach(row => {
+                let price = row.querySelector(".price-input").value;
+                let qty = row.querySelector(".st-qty").value;
+                if(qty > 0) {
+                    let sum = price * qty;
+                    row.querySelector("td[id^='st-sum']").innerText = sum;
+                    total += sum;
+                } else {
+                    row.querySelector("td[id^='st-sum']").innerText = 0;
+                }
             });
-            document.getElementById("st-total-before").innerText = totalBefore;
-            let disc = parseFloat(document.getElementById("st-discount").value) || 0;
-            let totalAfter = totalBefore - ((totalBefore * disc) / 100);
-            document.getElementById("st-total-after").innerText = totalAfter.toFixed(1);
-        }
-
-        window.renderStocktakeForm = function() {
-            let tbody = document.getElementById("st-table-body");
-            tbody.innerHTML = "";
-            let myProds = globalProducts; 
-            // Simple filter for rep lines if needed
-            myProds.forEach(p => {
-                tbody.innerHTML += `
-                <tr>
-                    <td style="text-align:right">${p.name}</td>
-                    <td>${p.price}</td>
-                    <td><input type="number" class="st-qty-input" data-id="${p.id}" data-price="${p.price}" style="width:50px" oninput="calculateStocktake()"></td>
-                    <td id="st-row-total-${p.id}">0</td>
-                </tr>`;
-            });
+            document.getElementById("st-total").innerText = total;
         }
 
         window.saveStocktake = async function() {
             let client = document.getElementById("st-client").value;
-            if(!client) return alert("اختر العميل");
+            if(!client) return alert("اكتب اسم العميل");
             let items = [];
-            document.querySelectorAll(".st-qty-input").forEach(inp => {
-                if(inp.value > 0) items.push({name: inp.dataset.name, qty: inp.value});
+            document.querySelectorAll("#st-table-body tr").forEach(row => {
+                let name = row.cells[0].innerText;
+                let price = row.querySelector(".price-input").value;
+                let qty = row.querySelector(".st-qty").value;
+                if(qty > 0) items.push({name, price, qty});
             });
-            if(items.length===0) return alert("أدخل كميات");
-            showLoader(true, "حفظ...");
-            await addDoc(collection(db, "stocktakes"), {
-                client: client, user: currentUser.user, date: new Date().toLocaleDateString(), items: items
+
+            if(items.length === 0) return alert("لا توجد كميات");
+
+            await addDoc(collection(db,"stocktakes"), {
+                client, items, user: currentUser.user, date: new Date().toLocaleDateString()
             });
-            showLoader(false);
-            alert("تم الحفظ");
+            alert("تم حفظ الجرد");
+            document.querySelectorAll(".st-qty").forEach(i=>i.value="");
+            calcStock();
         }
 
-        // Admin & Users
-        function renderAdminLists() {
-            let c=document.getElementById("sys-lists-container");
-            c.innerHTML = `<b>Lines:</b> `+(globalSettings.lines||[]).map(x=>`<span style="background:#ffeeba; padding:2px 5px; margin:2px; border-radius:4px; display:inline-block;">${x} <span onclick="delSet('lines','${x}')" style="color:red; cursor:pointer;">x</span></span>`).join("") +
-            `<br><br><b>Regs:</b> `+(globalSettings.regs||[]).map(x=>`<span style="background:#eee; padding:2px 5px; margin:2px; border-radius:4px; display:inline-block;">${x} <span onclick="delSet('regs','${x}')" style="color:red; cursor:pointer;">x</span></span>`).join("");
-            
-            let uL=document.getElementById("u-lines-check");
-            uL.innerHTML=`<label><input type="checkbox" value="all"> الكل</label><br>`;
-            (globalSettings.lines||[]).forEach(l=>uL.innerHTML+=`<label style="margin-left:10px"><input type="checkbox" value="${l}"> ${l}</label>`);
-            
-            let uMgr=document.getElementById("u-mgr-regions");
-            uMgr.innerHTML="";
-            (globalSettings.regs||[]).forEach(r=>uMgr.innerHTML+=`<label style="margin-left:10px"><input type="checkbox" value="${r}"> ${r}</label>`);
-        }
-
-        window.saveUser = async function() {
-            let u=document.getElementById("u-name").value;
-            let p=document.getElementById("u-pass").value;
-            let id = document.getElementById("edit-user-id").value;
-            if(!u) return alert("الاسم مطلوب");
-            
-            let data = {
+        // --- Users ---
+        window.addUser = async function() {
+            let u = document.getElementById("u-name").value;
+            let p = document.getElementById("u-pass").value;
+            if(!u) return;
+            await addDoc(collection(db,"users"), {
                 user: u, pass: p, 
-                region: document.getElementById("u-reg-select").value,
-                isAdmin: document.getElementById("perm-admin").checked,
-                canPrice: document.getElementById("perm-price").checked,
-                canStocktake: document.getElementById("perm-stocktake").checked
-            };
-            
-            showLoader(true, "حفظ...");
-            if(id) { await updateDoc(doc(db,"users",id), data); }
-            else { await addDoc(collection(db,"users"), data); }
-            alert("تم"); showLoader(false);
-            window.location.reload(); // Refresh to clean form
+                isAdmin: document.getElementById("u-admin").checked,
+                canStocktake: true // Default
+            });
+            document.getElementById("u-name").value = "";
         }
-
-        window.editUser = function(id) {
-            let u = globalUsers.find(x=>x.id===id);
-            document.getElementById("u-name").value = u.user;
-            document.getElementById("u-pass").value = u.pass;
-            document.getElementById("edit-user-id").value = id;
-            document.getElementById("perm-admin").checked = u.isAdmin;
-            document.getElementById("perm-stocktake").checked = u.canStocktake;
-            document.getElementById("btn-cancel-user").style.display = "inline-block";
-            window.scrollTo(0,0);
-        }
-
-        window.delUser = async function(id) { if(confirm("حذف؟")) await deleteDoc(doc(db,"users",id)); }
-
-        function renderUsersTable() {
+        window.renderUsers = function() {
             let d = document.getElementById("users-list"); d.innerHTML="";
-            globalUsers.forEach(u => {
-                d.innerHTML += `<div class="user-card">
-                    <div><b>${u.user}</b> <small>(${u.region})</small></div>
-                    <div><button style="width:30px; background:#eee;" onclick="editUser('${u.id}')">✏️</button>
-                    <button style="width:30px; background:red; color:white;" onclick="delUser('${u.id}')">x</button></div>
-                </div>`;
-            });
+            globalUsers.forEach(u => d.innerHTML += `<div style="padding:5px; border-bottom:1px solid #eee;">${u.user} (${u.isAdmin?'Admin':'User'})</div>`);
         }
 
-        function updateDashboard() {
-            if(!document.getElementById("page-dashboard")) return;
-            document.getElementById("dash-total-orders").innerText = globalOrders.length;
-            // Simple Chart
-            let ctx = document.getElementById("chart-reps").getContext('2d');
-            if(chartRepsInstance) chartRepsInstance.destroy();
-            let repData = {}; 
-            globalOrders.forEach(o => repData[o.user] = (repData[o.user]||0)+1);
-            chartRepsInstance = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: Object.keys(repData), datasets: [{ label: 'الطلبات', data: Object.values(repData), backgroundColor: '#1e3c72' }] }
-            });
+        window.updateDash = function() {
+            if(document.getElementById("dash-sales")) {
+                document.getElementById("dash-sales").innerText = globalOrders.length;
+                document.getElementById("dash-prods").innerText = globalProducts.length;
+            }
         }
 
-        // Nav
+        // Navigation
         window.nav = function(p) {
             document.querySelectorAll('.page-section').forEach(e=>e.classList.remove('active-page'));
             document.getElementById('page-'+p).classList.add('active-page');
             document.querySelectorAll('.bottom-nav button').forEach(b=>b.classList.remove('active'));
-            document.getElementById('btn-'+p).classList.add('active');
+            document.getElementById('nav-'+p).classList.add('active');
             if(p==='orders') renderOrders();
-            if(p==='stocktake') renderStocktakeForm();
-            if(p==='dashboard') updateDashboard();
         }
+        function showLoader(s) { document.getElementById("loader").style.display = s?"flex":"none"; }
 
-        function showLoader(s, t) {
-            document.getElementById("loader").style.display = s ? "flex" : "none";
-            document.getElementById("loader-text").innerText = t || "";
-        }
-
-        listenToSettings();
     </script>
 </body>
 </html>
