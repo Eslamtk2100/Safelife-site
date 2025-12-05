@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V41 (Ultimate Grouped)</title>
+    <title>Safelife - V42 (Dist PDF & Filter)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     
+    <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -42,15 +43,10 @@
         .card-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .card-body { padding: 10px; text-align: right; flex-grow: 1; }
         
-        /* Stats */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-card { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .stat-num { font-size: 20px; font-weight: bold; color: var(--main); }
-        
         /* UI Elements */
         .admin-panel { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; position: relative; z-index: 1; }
         
-        /* Fixed Inputs for Touch */
+        /* Inputs & Buttons */
         input, select, textarea { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 100%; margin-bottom: 10px; font-family: 'Cairo'; font-size: 16px; }
         button { cursor: pointer; border:none; border-radius:8px; padding:12px; font-family: 'Cairo'; font-weight: bold; width:100%; margin-bottom:5px; font-size: 16px; }
         
@@ -66,25 +62,27 @@
         .btn-warning { background: #f39c12; color: white; }
         .btn-ghost { background: #eee; color: #333; }
 
-        /* Order Group Card (Invoice Style) */
+        /* Order Group Card */
         .order-group-card { background: white; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .group-header { background: #f0f7ff; padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .group-items { padding: 0; }
         .group-item-row { display: flex; justify-content: space-between; padding: 10px 15px; border-bottom: 1px dashed #eee; font-size: 14px; }
         .group-footer { background: #fafafa; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
 
         .price-input { border: 1px solid #f39c12; background: #fffdf5; font-weight: bold; color: #d35400; text-align: center; width: 80px !important; display: inline-block; padding: 5px; margin: 0; }
         .user-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        /* PDF Styles */
+        #dist-print-area table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        #dist-print-area th { background: #eee; border: 1px solid #333; padding: 10px; }
+        #dist-print-area td { border: 1px solid #333; padding: 10px; text-align: center; }
 
         /* Nav */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 999; border-top: 1px solid #eee; height: 60px; }
         .bottom-nav button { background: transparent; color: #aaa; font-size: 10px; width: auto; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 0; }
         .bottom-nav button.active { color: var(--main); }
         .bottom-nav button span { font-size: 20px; margin-bottom: 2px; }
-
-        table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-        th { background: #f0f0f0; }
     </style>
 </head>
 <body>
@@ -122,13 +120,13 @@
         <!-- Dashboard -->
         <div id="page-dashboard" class="page-section active-page">
             <h3>📊 لوحة القيادة</h3>
-            <div class="stats-grid">
+            <div class="stat-grid">
                 <div class="stat-card">
-                    <div class="stat-num" id="dash-total-sales">0</div>
+                    <div class="stat-num" id="dash-total-sales" style="font-size:20px; font-weight:bold;">0</div>
                     <div>إجمالي المبيعات</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-num" id="dash-total-orders">0</div>
+                    <div class="stat-num" id="dash-total-orders" style="font-size:20px; font-weight:bold;">0</div>
                     <div>عدد الطلبات</div>
                 </div>
             </div>
@@ -177,15 +175,32 @@
                 <button class="btn-warning" onclick="showDistSummary()" id="btn-dist-summary" style="display:none;">📦 تجميعة التحميل</button>
             </div>
             
-            <!-- Summary Modal -->
+            <!-- Summary Modal (Distribution) -->
             <div id="dist-summary-panel" class="admin-panel" style="display:none; border:2px solid orange;">
-                <h4>📦 تجميعة المخزن (المطلوب تحميله)</h4>
-                <table style="width:100%;">
-                    <thead><tr><th>الصنف</th><th>إجمالي العدد</th></tr></thead>
-                    <tbody id="dist-summary-body"></tbody>
-                </table>
-                <br>
-                <button class="btn-ghost" onclick="document.getElementById('dist-summary-panel').style.display='none'">إغلاق</button>
+                <h4 style="color:var(--main);">📦 تجميعة التحميل (للمخزن)</h4>
+                
+                <label>تصفية بالمنطقة:</label>
+                <select id="dist-filter-reg" onchange="showDistSummary()">
+                    <option value="all">كل المناطق</option>
+                </select>
+
+                <!-- PDF Content Area -->
+                <div id="dist-print-area" style="background:white; padding:10px;">
+                    <div id="pdf-header" style="text-align:center; display:none; margin-bottom:15px;">
+                        <h3>بيان تحميل - Safelife</h3>
+                        <div id="pdf-meta" style="font-size:12px;"></div>
+                    </div>
+                    
+                    <table style="width:100%;">
+                        <thead style="background:#eee;"><tr><th>الصنف</th><th>العدد المطلوب</th></tr></thead>
+                        <tbody id="dist-summary-body"></tbody>
+                    </table>
+                </div>
+                
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button class="btn-blue" onclick="downloadDistPDF()">📄 تحميل PDF</button>
+                    <button class="btn-ghost" onclick="document.getElementById('dist-summary-panel').style.display='none'">إغلاق</button>
+                </div>
             </div>
 
             <div id="orders-container"></div>
@@ -264,7 +279,7 @@
                     <label class="permission-label"><input type="checkbox" id="perm-admin"> أدمن كامل</label>
                     <label class="permission-label"><input type="checkbox" id="perm-price"> تعديل منتجات</label>
                     <label class="permission-label"><input type="checkbox" id="perm-report"> صلاحية التقارير</label>
-                    <label class="permission-label"><input type="checkbox" id="perm-deliver"> مندوب توزيع (مشاهدة التجميعة)</label>
+                    <label class="permission-label"><input type="checkbox" id="perm-deliver"> مندوب توزيع</label>
                     <label class="permission-label"><input type="checkbox" id="perm-stocktake"> صلاحية عمل تقفيلات</label>
                     <label class="permission-label"><input type="checkbox" id="perm-archive"> مشاهدة الأرشيف</label>
                     <hr>
@@ -510,12 +525,12 @@
             alert("تم");
         }
 
-        // --- GROUPED ORDERS LOGIC ---
+        // --- GROUPED ORDERS ---
         window.renderOrders = function() {
             let div = document.getElementById("orders-container"); div.innerHTML = "";
             let list = globalOrders.filter(o => orderTab==='active' ? o.status!=='archived' : o.status==='archived');
             
-            // Group by Client
+            // Group
             let groups = {};
             list.forEach(o => {
                 if(!groups[o.client]) groups[o.client] = [];
@@ -537,7 +552,6 @@
 
                 let actionBtn = "";
                 if(orderTab === 'active') {
-                    // Deliver ALL items for this client
                     actionBtn = `<button class="btn-green" style="width:auto; padding:8px 15px;" onclick="deliverGroup('${clientName}')">تسليم الفاتورة 🚚</button>`;
                 } else {
                     actionBtn = `<small style="color:red;">${firstOrder.deliveryNote || "أرشيف"}</small>`;
@@ -563,43 +577,74 @@
             if(list.length === 0) div.innerHTML = "<div style='text-align:center; padding:20px; color:#777;'>لا توجد طلبات</div>";
         }
 
-        // Deliver all items for a specific client
         window.deliverGroup = async function(clientName) {
             let note = prompt("ملاحظات تسليم الفاتورة؟ (اترك فارغاً للتسليم الكامل)");
             if(note === null) return;
-
             showLoader(true, "جاري التسليم...");
             
-            // Find all pending orders for this client
             let pending = globalOrders.filter(o => o.client === clientName && o.status !== 'archived');
-            
-            // Batch update using Promises
             let batch = writeBatch(db);
             pending.forEach(o => {
                 let ref = doc(db, "orders", o.id);
                 batch.update(ref, { status: 'archived', deliveryNote: note || "تسليم كامل" });
             });
-
             await batch.commit();
             showLoader(false);
             alert("تم تسليم الفاتورة بالكامل");
         }
 
+        // --- DIST SUMMARY (FILTER & PDF) ---
         window.showDistSummary = function() {
-            let pendingOrders = globalOrders.filter(o => o.status !== 'archived');
+            // Populate Dropdown if only default exists
+            let sel = document.getElementById("dist-filter-reg");
+            if(sel.options.length === 1 && globalSettings.regs) {
+                globalSettings.regs.forEach(r => {
+                    sel.innerHTML += `<option value="${r}">${r}</option>`;
+                });
+            }
+
+            let selectedReg = sel.value;
+            let pending = globalOrders.filter(o => o.status !== 'archived');
+            
+            if(selectedReg !== 'all') {
+                pending = pending.filter(o => o.region === selectedReg);
+            }
+
             let summary = {};
-            pendingOrders.forEach(o => {
+            pending.forEach(o => {
                 let qty = parseInt(o.qty) || 0;
                 if(summary[o.product]) summary[o.product] += qty;
                 else summary[o.product] = qty;
             });
+
             let tbody = document.getElementById("dist-summary-body");
             tbody.innerHTML = "";
             for (let [prod, total] of Object.entries(summary)) {
                 tbody.innerHTML += `<tr><td style="text-align:right;">${prod}</td><td style="font-weight:bold; color:green;">${total}</td></tr>`;
             }
+            
+            // Update PDF Meta
+            document.getElementById("pdf-meta").innerText = `المنطقة: ${selectedReg === 'all' ? 'كل المناطق' : selectedReg} | التاريخ: ${new Date().toLocaleDateString()}`;
+
             document.getElementById("dist-summary-panel").style.display = "block";
             window.scrollTo(0,0);
+        }
+
+        window.downloadDistPDF = function() {
+            const element = document.getElementById('dist-print-area');
+            document.getElementById('pdf-header').style.display = 'block'; // Show Header
+            
+            var opt = {
+                margin:       0.2,
+                filename:     'Safelife_Distribution.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                 document.getElementById('pdf-header').style.display = 'none'; // Hide again
+            });
         }
 
         window.setOrderTab = function(t){ orderTab=t; document.querySelectorAll("#page-orders button").forEach(b=>b.classList.remove("btn-blue")); event.target.classList.add("btn-blue"); renderOrders(); }
