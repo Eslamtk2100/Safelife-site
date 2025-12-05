@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V44 (Fix Login)</title>
+    <title>Safelife - V45 (Stable)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,10 +42,14 @@
         .card-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .card-body { padding: 10px; text-align: right; flex-grow: 1; }
         
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        
         /* UI Elements */
         .admin-panel { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; position: relative; z-index: 1; }
         
-        /* Inputs & Buttons */
+        /* Inputs */
         input, select, textarea { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 100%; margin-bottom: 10px; font-family: 'Cairo'; font-size: 16px; }
         button { cursor: pointer; border:none; border-radius:8px; padding:12px; font-family: 'Cairo'; font-weight: bold; width:100%; margin-bottom:5px; font-size: 16px; }
         
@@ -122,15 +126,19 @@
         <!-- Dashboard -->
         <div id="page-dashboard" class="page-section active-page">
             <h3>📊 لوحة القيادة</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="admin-panel" style="text-align:center;">
+            <div class="stats-grid">
+                <div class="stat-card">
                     <div id="dash-total-sales" style="font-size:24px; font-weight:bold; color:var(--main);">0</div>
                     <div>المبيعات</div>
                 </div>
-                <div class="admin-panel" style="text-align:center;">
+                <div class="stat-card">
                     <div id="dash-total-orders" style="font-size:24px; font-weight:bold; color:var(--green);">0</div>
                     <div>الطلبات</div>
                 </div>
+            </div>
+            <div class="admin-panel">
+                <h5>🏆 أداء المندوبين</h5>
+                <canvas id="chart-reps"></canvas>
             </div>
         </div>
 
@@ -173,29 +181,23 @@
                 <button class="btn-warning" onclick="initDistSummary()" id="btn-dist-summary" style="display:none;">📦 تجميعة التحميل</button>
             </div>
             
-            <!-- Dist Summary Modal -->
             <div id="dist-summary-panel" class="admin-panel" style="display:none; border:2px solid orange;">
                 <h4 style="color:var(--main);">📦 تجميعة التحميل (للمخزن)</h4>
-                
                 <div id="dist-filters-container" style="margin-bottom:15px; background:#fff3e0; padding:10px; border-radius:8px;">
                     <label style="font-weight:bold;">اختر المناطق للتحميل:</label>
                     <div id="dist-regions-checks" style="max-height:150px; overflow-y:auto;"></div>
                     <button class="btn-blue" style="margin-top:10px;" onclick="generateDistTable()">عرض التجميعة</button>
                 </div>
-
-                <!-- PDF Content Area -->
                 <div id="dist-print-area" style="background:white; padding:10px; display:none;">
                     <div id="pdf-header" style="text-align:center; margin-bottom:15px;">
                         <h3>أمر تحميل / توزيع</h3>
                         <div id="pdf-meta" style="font-size:12px;"></div>
                     </div>
-                    
                     <table style="width:100%;">
                         <thead style="background:#eee;"><tr><th>الصنف</th><th>العدد المطلوب</th></tr></thead>
                         <tbody id="dist-summary-body"></tbody>
                     </table>
                 </div>
-                
                 <div style="display:flex; gap:10px; margin-top:15px;">
                     <button class="btn-green" onclick="downloadDistPDF()" id="btn-dl-pdf" style="display:none;">📄 تحميل PDF</button>
                     <button class="btn-ghost" onclick="document.getElementById('dist-summary-panel').style.display='none'">إغلاق</button>
@@ -205,21 +207,18 @@
             <div id="orders-container"></div>
         </div>
 
-        <!-- Stocktake (FIXED: Search & Add) -->
+        <!-- Stocktake -->
         <div id="page-stocktake" class="page-section">
             <h3>📋 التقفيل / الجرد</h3>
             <div class="admin-panel">
                 <label>العميل:</label>
                 <input type="text" id="st-client" list="clients-datalist" placeholder="اختر العميل..." oninput="searchClients(this.value)">
-                
                 <hr style="margin:15px 0;">
-                
                 <label style="font-weight:bold; color:var(--main);">إضافة صنف للجرد:</label>
                 <div style="display:flex; gap:5px;">
                     <input type="text" id="st-search-prod" list="st-prods-list" placeholder="ابحث باسم المنتج..." onchange="prepareStItem(this.value)">
                     <datalist id="st-prods-list"></datalist>
                 </div>
-                
                 <div id="st-entry-box" style="display:none; background:#e3f2fd; padding:10px; border-radius:8px; margin-bottom:10px;">
                     <div style="font-weight:bold; margin-bottom:5px;" id="st-selected-name"></div>
                     <div style="display:flex; gap:5px;">
@@ -230,18 +229,14 @@
                 </div>
             </div>
 
-            <!-- Items Table -->
             <div style="overflow-x:auto; margin-bottom:15px; border:1px solid #ddd; border-radius:8px;">
                 <table style="min-width:100%;">
                     <thead id="st-table-header"><tr><th>الصنف</th><th>السعر</th><th>العدد</th><th>الإجمالي</th><th>حذف</th></tr></thead>
-                    <tbody id="st-table-body">
-                        <!-- Items will go here -->
-                    </tbody>
+                    <tbody id="st-table-body"></tbody>
                 </table>
                 <div id="st-empty-msg" style="text-align:center; padding:20px; color:#999;">الجدول فارغ</div>
             </div>
 
-            <!-- Footer Totals -->
             <div class="admin-panel" style="background:#e8f5e9;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                     <span>الإجمالي قبل الخصم:</span>
@@ -256,14 +251,12 @@
                     <span id="st-total-after">0</span>
                 </div>
             </div>
-            
             <button class="btn-green" onclick="saveStocktake()">💾 حفظ التقفيلة</button>
         </div>
 
         <!-- Admin Settings -->
         <div id="page-admin" class="page-section">
             <h3>⚙️ الإعدادات</h3>
-            
             <div class="admin-panel">
                 <h4 style="color:green;">📥 استيراد عملاء (Excel)</h4>
                 <div style="display:flex; gap:5px;">
@@ -301,10 +294,8 @@
                 <input type="text" id="u-pass" placeholder="كلمة المرور">
                 <input type="text" id="u-job" placeholder="المسمى الوظيفي">
                 <label>المنطقة:</label><select id="u-reg-select"></select>
-                
                 <label style="font-weight:bold; margin-top:10px; display:block;">اللاينات (اختر):</label>
                 <div class="check-group" id="u-lines-check"></div>
-
                 <div style="background:#f9f9f9; padding:10px; border-radius:5px; margin-top:5px;">
                     <label class="permission-label"><input type="checkbox" id="perm-admin"> أدمن كامل</label>
                     <label class="permission-label"><input type="checkbox" id="perm-price"> تعديل منتجات</label>
@@ -319,7 +310,6 @@
                         <div class="check-group" id="u-mgr-regions"></div>
                     </div>
                 </div>
-                
                 <div style="display:flex; gap:5px; margin-top:15px;">
                     <button class="btn-green" onclick="saveUser()">حفظ المستخدم</button>
                     <button class="btn-ghost" id="btn-cancel-user" onclick="cancelEditUser()" style="display:none;">إلغاء</button>
@@ -330,7 +320,6 @@
             <div id="users-list"></div>
         </div>
 
-        <!-- Navigation Buttons -->
         <div class="bottom-nav">
             <button onclick="nav('dashboard')" id="btn-dashboard"><span>🏠</span>الرئيسية</button>
             <button onclick="nav('products')" id="btn-products"><span>💊</span>المنتجات</button>
@@ -345,9 +334,7 @@
         import { getFirestore, collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, where, writeBatch, limit, arrayUnion, arrayRemove } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // =======================================================
-        // تنبيه هام: قم باستبدال هذا الجزء ببياناتك الصحيحة
-        // =======================================================
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyCS-YWHs-MNaEVzh4G5VEGp_OZKYano1lE",
             authDomain: "safelife-db.firebaseapp.com",
@@ -356,7 +343,6 @@
             messagingSenderId: "778534276398",
             appId: "1:778534276398:web:085e746ed47708a7827ebf"
         };
-        // =======================================================
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -368,7 +354,7 @@
         let stocktakeItems = []; 
         let chartRepsInstance = null;
 
-        // --- Auto Login (Remember Me) ---
+        // --- Auto Login ---
         window.onload = function() {
             const savedUser = localStorage.getItem('safelife_user');
             if(savedUser) {
@@ -385,7 +371,6 @@
 
             showLoader(true, "دخول...");
             
-            // Backdoor for emergency admin access (works without DB)
             if(u==='admin' && p==='123') {
                  if(remember) localStorage.setItem('safelife_user', JSON.stringify({user:u, pass:p}));
                  startApp({user:'Admin', isAdmin:true, canPrice:true, canStocktake:true, isDistributor:true});
@@ -435,16 +420,13 @@
                 let canStocktake = user.isAdmin || user.canStocktake;
                 document.getElementById("btn-stocktake").style.display = canStocktake ? "flex" : "none";
                 document.getElementById("btn-orders").style.display = "flex";
-                
                 let isDist = user.isAdmin || user.isDistributor;
                 document.getElementById("btn-dist-summary").style.display = isDist ? "block" : "none";
-                
                 nav('dashboard');
             }
 
             listenToProducts(); listenToOrders(); listenToSettings();
             if(user.isAdmin) listenToUsers();
-            
             showLoader(false);
         }
 
@@ -505,13 +487,7 @@
             let name = document.getElementById("np-name").value;
             let price = Number(document.getElementById("np-price").value);
             if(!name) return;
-            let data = {
-                name, price,
-                cat: document.getElementById("np-cat").value,
-                line: document.getElementById("np-salesline").value,
-                desc: document.getElementById("np-desc").value,
-                img: document.getElementById("np-img").value
-            };
+            let data = { name, price, cat: document.getElementById("np-cat").value, line: document.getElementById("np-salesline").value, desc: document.getElementById("np-desc").value, img: document.getElementById("np-img").value };
             if(id) await updateDoc(doc(db,"products",id), data);
             else await addDoc(collection(db,"products"), data);
             cancelEditProd();
@@ -524,12 +500,9 @@
                 let btns = "";
                 if(currentUser && currentUser.user!=="زائر") {
                     if(currentUser.isAdmin || currentUser.canPrice) {
-                        btns=`<div style="position:absolute; top:5px; left:5px;">
-                        <button style="background:#eee; width:30px; padding:2px;" onclick="editProd('${p.id}')">✏️</button>
-                        <button style="background:#ffeeba; width:30px; padding:2px; color:red;" onclick="delP('${p.id}')">x</button></div>`;
+                        btns=`<div style="position:absolute; top:5px; left:5px;"><button style="background:#eee; width:30px; padding:2px;" onclick="editProd('${p.id}')">✏️</button><button style="background:#ffeeba; width:30px; padding:2px; color:red;" onclick="delP('${p.id}')">x</button></div>`;
                     }
                 }
-                
                 div.innerHTML += `
                 <div class="card">
                     ${btns}
@@ -555,23 +528,9 @@
             let client = document.getElementById("current-client").value;
             let location = document.getElementById("order-location").value;
             let customPrice = document.getElementById(`price-${pid}`).value;
-
             if(!client) return alert("اكتب اسم العميل");
-            
             showLoader(true, "جاري الطلب...");
-            await addDoc(collection(db,"orders"), {
-                product: p.name, 
-                price: customPrice, 
-                qty: qty, 
-                total: customPrice*qty,
-                client: client, 
-                location: location || "غير محدد",
-                user: currentUser.user, 
-                region: currentUser.region || 'none',
-                date: new Date().toLocaleDateString(), 
-                timestamp: Date.now(),
-                status: 'pending'
-            });
+            await addDoc(collection(db,"orders"), { product: p.name, price: customPrice, qty: qty, total: customPrice*qty, client: client, location: location || "غير محدد", user: currentUser.user, region: currentUser.region || 'none', date: new Date().toLocaleDateString(), timestamp: Date.now(), status: 'pending' });
             showLoader(false);
             alert("تم");
         }
@@ -580,86 +539,49 @@
         window.renderOrders = function() {
             let div = document.getElementById("orders-container"); div.innerHTML = "";
             let list = globalOrders.filter(o => orderTab==='active' ? o.status!=='archived' : o.status==='archived');
-            
-            // Group
             let groups = {};
-            list.forEach(o => {
-                if(!groups[o.client]) groups[o.client] = [];
-                groups[o.client].push(o);
-            });
+            list.forEach(o => { if(!groups[o.client]) groups[o.client] = []; groups[o.client].push(o); });
 
-            // Render Groups
             for(let clientName in groups) {
                 let items = groups[clientName];
                 let firstOrder = items[0];
                 let totalAmount = items.reduce((acc, curr) => acc + parseFloat(curr.total), 0);
-                
-                let rowsHTML = items.map(o => `
-                    <div class="group-item-row">
-                        <div>${o.product} (${o.qty} x ${o.price})</div>
-                        <div style="font-weight:bold;">${o.total}</div>
-                    </div>
-                `).join('');
-
+                let rowsHTML = items.map(o => `<div class="group-item-row"><div>${o.product} (${o.qty} x ${o.price})</div><div style="font-weight:bold;">${o.total}</div></div>`).join('');
                 let actionBtn = "";
-                if(orderTab === 'active') {
-                    actionBtn = `<button class="btn-green" style="width:auto; padding:8px 15px;" onclick="deliverGroup('${clientName}')">تسليم الفاتورة 🚚</button>`;
-                } else {
-                    actionBtn = `<small style="color:red;">${firstOrder.deliveryNote || "أرشيف"}</small>`;
-                }
+                if(orderTab === 'active') actionBtn = `<button class="btn-green" style="width:auto; padding:8px 15px;" onclick="deliverGroup('${clientName}')">تسليم الفاتورة 🚚</button>`;
+                else actionBtn = `<small style="color:red;">${firstOrder.deliveryNote || "أرشيف"}</small>`;
 
                 div.innerHTML += `
                 <div class="order-group-card">
-                    <div class="group-header">
-                        <div style="font-weight:bold; font-size:16px;">${clientName}</div>
-                        <div style="font-size:12px; color:#555;">${firstOrder.date} | ${firstOrder.user}</div>
-                    </div>
+                    <div class="group-header"><div style="font-weight:bold; font-size:16px;">${clientName}</div><div style="font-size:12px; color:#555;">${firstOrder.date} | ${firstOrder.user}</div></div>
                     <div style="background:#fffcf5; padding:5px 12px; font-size:12px; border-bottom:1px solid #eee;">📍 ${firstOrder.location}</div>
-                    <div class="group-items">
-                        ${rowsHTML}
-                    </div>
-                    <div class="group-footer">
-                        <div style="font-weight:bold; font-size:18px; color:green;">الإجمالي: ${totalAmount}</div>
-                        ${actionBtn}
-                    </div>
+                    <div class="group-items">${rowsHTML}</div>
+                    <div class="group-footer"><div style="font-weight:bold; font-size:18px; color:green;">الإجمالي: ${totalAmount}</div>${actionBtn}</div>
                 </div>`;
             }
-
             if(list.length === 0) div.innerHTML = "<div style='text-align:center; padding:20px; color:#777;'>لا توجد طلبات</div>";
         }
 
         window.deliverGroup = async function(clientName) {
-            let note = prompt("ملاحظات تسليم الفاتورة؟ (اترك فارغاً للتسليم الكامل)");
+            let note = prompt("ملاحظات تسليم الفاتورة؟");
             if(note === null) return;
             showLoader(true, "جاري التسليم...");
-            
             let pending = globalOrders.filter(o => o.client === clientName && o.status !== 'archived');
             let batch = writeBatch(db);
-            pending.forEach(o => {
-                let ref = doc(db, "orders", o.id);
-                batch.update(ref, { status: 'archived', deliveryNote: note || "تسليم كامل" });
-            });
+            pending.forEach(o => { let ref = doc(db, "orders", o.id); batch.update(ref, { status: 'archived', deliveryNote: note || "تسليم كامل" }); });
             await batch.commit();
             showLoader(false);
-            alert("تم تسليم الفاتورة بالكامل");
+            alert("تم تسليم الفاتورة");
         }
 
-        // --- DIST SUMMARY (SMART FILTER & PDF) ---
+        // --- DIST SUMMARY ---
         window.initDistSummary = function() {
             let pending = globalOrders.filter(o => o.status !== 'archived');
             let regions = [...new Set(pending.map(o => o.region || "غير محدد"))];
-            
             let container = document.getElementById("dist-regions-checks");
             container.innerHTML = "";
-            
-            if(regions.length === 0) {
-                container.innerHTML = "<small>لا توجد طلبات حالياً في أي منطقة</small>";
-            } else {
-                regions.forEach(r => {
-                    container.innerHTML += `<label class="permission-label"><input type="checkbox" value="${r}" class="dist-reg-check"> ${r}</label>`;
-                });
-            }
-
+            if(regions.length === 0) container.innerHTML = "<small>لا توجد طلبات حالياً في أي منطقة</small>";
+            else regions.forEach(r => { container.innerHTML += `<label class="permission-label"><input type="checkbox" value="${r}" class="dist-reg-check"> ${r}</label>`; });
             document.getElementById("dist-summary-panel").style.display = "block";
             document.getElementById("dist-print-area").style.display = "none"; 
             document.getElementById("btn-dl-pdf").style.display = "none";
@@ -668,23 +590,13 @@
         window.generateDistTable = function() {
             let selectedRegs = [];
             document.querySelectorAll(".dist-reg-check:checked").forEach(c => selectedRegs.push(c.value));
-            
             if(selectedRegs.length === 0) return alert("اختر منطقة واحدة على الأقل");
-
             let pending = globalOrders.filter(o => o.status !== 'archived' && selectedRegs.includes(o.region || "غير محدد"));
             let summary = {};
-            pending.forEach(o => {
-                let qty = parseInt(o.qty) || 0;
-                if(summary[o.product]) summary[o.product] += qty;
-                else summary[o.product] = qty;
-            });
-
+            pending.forEach(o => { let qty = parseInt(o.qty) || 0; if(summary[o.product]) summary[o.product] += qty; else summary[o.product] = qty; });
             let tbody = document.getElementById("dist-summary-body");
             tbody.innerHTML = "";
-            for (let [prod, total] of Object.entries(summary)) {
-                tbody.innerHTML += `<tr><td style="text-align:right;">${prod}</td><td style="font-weight:bold; color:green;">${total}</td></tr>`;
-            }
-
+            for (let [prod, total] of Object.entries(summary)) { tbody.innerHTML += `<tr><td style="text-align:right;">${prod}</td><td style="font-weight:bold; color:green;">${total}</td></tr>`; }
             document.getElementById("pdf-meta").innerText = `مناطق: ${selectedRegs.join(' , ')} | التاريخ: ${new Date().toLocaleDateString()}`;
             document.getElementById("dist-print-area").style.display = "block";
             document.getElementById("btn-dl-pdf").style.display = "block";
@@ -692,19 +604,11 @@
 
         window.downloadDistPDF = function() {
             const element = document.getElementById('dist-print-area');
-            var opt = {
-                margin:       0.2,
-                filename:     'Safelife_Load_Order.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
+            var opt = { margin: 0.2, filename: 'Safelife_Load_Order.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
             html2pdf().set(opt).from(element).save();
         }
 
-        window.setOrderTab = function(t){ orderTab=t; document.querySelectorAll("#page-orders button").forEach(b=>b.classList.remove("btn-blue")); event.target.classList.add("btn-blue"); renderOrders(); }
-
-        // --- NEW STOCKTAKE LOGIC (Cashier Style) ---
+        // --- STOCKTAKE (SEARCH) ---
         window.prepareStItem = function(val) {
             let p = globalProducts.find(x => x.name === val);
             if(p) {
@@ -714,13 +618,11 @@
                 document.getElementById("st-entry-box").dataset.id = p.id;
             }
         }
-
         window.addStItemToTable = function() {
             let name = document.getElementById("st-selected-name").innerText;
             let price = parseFloat(document.getElementById("st-entry-price").value);
             let qty = parseInt(document.getElementById("st-entry-qty").value);
             let id = document.getElementById("st-entry-box").dataset.id;
-            
             if(qty > 0) {
                 stocktakeItems.push({id, name, price, qty});
                 renderStTable();
@@ -729,186 +631,44 @@
                 document.getElementById("st-entry-qty").value = 1;
             }
         }
-
-        window.removeStItem = function(idx) {
-            stocktakeItems.splice(idx, 1);
-            renderStTable();
-        }
-
+        window.removeStItem = function(idx) { stocktakeItems.splice(idx, 1); renderStTable(); }
         window.renderStTable = function() {
-            let tbody = document.getElementById("st-table-body");
-            tbody.innerHTML = "";
-            
-            if(stocktakeItems.length === 0) {
-                document.getElementById("st-empty-msg").style.display = "block";
-            } else {
+            let tbody = document.getElementById("st-table-body"); tbody.innerHTML = "";
+            if(stocktakeItems.length === 0) document.getElementById("st-empty-msg").style.display = "block";
+            else {
                 document.getElementById("st-empty-msg").style.display = "none";
-                stocktakeItems.forEach((item, index) => {
-                    tbody.innerHTML += `
-                    <tr>
-                        <td style="text-align:right">${item.name}</td>
-                        <td>${item.price}</td>
-                        <td>${item.qty}</td>
-                        <td>${(item.price * item.qty).toFixed(1)}</td>
-                        <td><span class="st-del-btn" onclick="removeStItem(${index})">x</span></td>
-                    </tr>`;
-                });
+                stocktakeItems.forEach((item, index) => { tbody.innerHTML += `<tr><td style="text-align:right">${item.name}</td><td>${item.price}</td><td>${item.qty}</td><td>${(item.price * item.qty).toFixed(1)}</td><td><span class="st-del-btn" onclick="removeStItem(${index})">x</span></td></tr>`; });
             }
             calcStTotals();
         }
-
         window.calcStTotals = function() {
             let total = stocktakeItems.reduce((acc, curr) => acc + (curr.price * curr.qty), 0);
             document.getElementById("st-total-before").innerText = total.toFixed(1);
             let disc = parseFloat(document.getElementById("st-discount").value) || 0;
-            let final = total - (total * disc / 100);
-            document.getElementById("st-total-after").innerText = final.toFixed(1);
+            document.getElementById("st-total-after").innerText = (total - (total * disc / 100)).toFixed(1);
         }
-
         window.saveStocktake = async function() {
             let client = document.getElementById("st-client").value;
             if(!client) return alert("اختر العميل");
             if(stocktakeItems.length === 0) return alert("الجدول فارغ");
-            
-            showLoader(true, "حفظ الجرد...");
-            await addDoc(collection(db, "stocktakes"), { 
-                client, 
-                user: currentUser.user, 
-                date: new Date().toLocaleDateString(), 
-                items: stocktakeItems,
-                total: document.getElementById("st-total-after").innerText 
-            });
+            showLoader(true);
+            await addDoc(collection(db, "stocktakes"), { client, user: currentUser.user, date: new Date().toLocaleDateString(), items: stocktakeItems, total: document.getElementById("st-total-after").innerText });
             showLoader(false);
             alert("تم الحفظ");
-            stocktakeItems = [];
-            renderStTable();
-            document.getElementById("st-client").value = "";
+            stocktakeItems = []; renderStTable(); document.getElementById("st-client").value = "";
         }
 
-        // --- Admin Functions ---
-        window.addSysItem = async function() {
-            let type = document.getElementById("sys-type").value;
-            let val = document.getElementById("sys-val").value;
-            if(val) { await updateDoc(doc(db,"settings","config"), {[type]: arrayUnion(val)}); document.getElementById("sys-val").value=""; }
-        }
-        window.delSet = async function(type, val) { if(confirm("حذف؟")) await updateDoc(doc(db,"settings","config"), {[type]: arrayRemove(val)}); }
-
-        window.importClients = function() {
-            let file = document.getElementById('file-clients').files[0];
-            if(!file) return;
-            let reader = new FileReader();
-            reader.onload = async function(e) {
-                let data = new Uint8Array(e.target.result);
-                let workbook = XLSX.read(data, {type: 'array'});
-                let sheet = workbook.Sheets[workbook.SheetNames[0]];
-                let json = XLSX.utils.sheet_to_json(sheet, {header: 1});
-                
-                let batch = writeBatch(db);
-                let count = 0;
-                for(let i=0; i<json.length; i++) {
-                    let row = json[i];
-                    if(row[0]) {
-                        let ref = doc(collection(db, "clients"));
-                        batch.set(ref, {name: row[0]});
-                        count++;
-                        if(count >= 400) { await batch.commit(); batch = writeBatch(db); count=0; }
-                    }
-                }
-                if(count>0) await batch.commit();
-                document.getElementById("upload-status").innerText = "تم رفع العملاء بنجاح";
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        // --- Admin: Users ---
-        window.saveUser = async function() {
-            let u=document.getElementById("u-name").value;
-            let p=document.getElementById("u-pass").value;
-            let id = document.getElementById("edit-user-id").value;
-            let lines = [];
-            document.querySelectorAll(".u-line-chk:checked").forEach(c=>lines.push(c.value));
-            if(lines.length===0) lines=['all'];
-
-            let data = {
-                user: u, pass: p, 
-                job: document.getElementById("u-job").value,
-                region: document.getElementById("u-reg-select").value,
-                lines: lines,
-                isAdmin: document.getElementById("perm-admin").checked,
-                canPrice: document.getElementById("perm-price").checked,
-                canReport: document.getElementById("perm-report").checked,
-                isDistributor: document.getElementById("perm-deliver").checked,
-                canStocktake: document.getElementById("perm-stocktake").checked,
-                canArchive: document.getElementById("perm-archive").checked,
-                isLineMgr: document.getElementById("perm-linemanager").checked
-            };
-            
-            if(id) await updateDoc(doc(db,"users",id), data);
-            else await addDoc(collection(db,"users"), data);
-            alert("تم"); location.reload();
-        }
-
-        window.editUser = function(id) {
-            let u = globalUsers.find(x=>x.id===id);
-            document.getElementById("u-name").value = u.user;
-            document.getElementById("u-pass").value = u.pass;
-            document.getElementById("edit-user-id").value = id;
-            document.getElementById("u-job").value = u.job || "";
-            document.getElementById("u-reg-select").value = u.region;
-            
-            document.getElementById("perm-admin").checked = u.isAdmin;
-            document.getElementById("perm-price").checked = u.canPrice;
-            document.getElementById("perm-report").checked = u.canReport;
-            document.getElementById("perm-deliver").checked = u.isDistributor;
-            document.getElementById("perm-stocktake").checked = u.canStocktake;
-            document.getElementById("perm-archive").checked = u.canArchive;
-            document.getElementById("perm-linemanager").checked = u.isLineMgr;
-
-            document.getElementById("btn-cancel-user").style.display = "inline-block";
-            document.getElementById("user-form-title").innerText = "تعديل: " + u.user;
-        }
-
-        window.renderAdminLists = function() {
-            let c=document.getElementById("sys-lists-container");
-            c.innerHTML = `<b>Lines:</b> `+(globalSettings.lines||[]).map(x=>`<span style="background:#ffeeba; padding:2px 5px; margin:2px;">${x} <span onclick="delSet('lines','${x}')" style="color:red; cursor:pointer;">x</span></span>`).join("") +
-            `<br><br><b>Regs:</b> `+(globalSettings.regs||[]).map(x=>`<span style="background:#eee; padding:2px 5px; margin:2px;">${x} <span onclick="delSet('regs','${x}')" style="color:red; cursor:pointer;">x</span></span>`).join("");
-            
-            let uL=document.getElementById("u-lines-check");
-            uL.innerHTML=`<label class="permission-label"><input type="checkbox" value="all" class="u-line-chk"> الكل</label>`;
-            (globalSettings.lines||[]).forEach(l=>uL.innerHTML+=`<label class="permission-label"><input type="checkbox" value="${l}" class="u-line-chk"> ${l}</label>`);
-        }
-
-        function renderUsersTable() {
-            let d = document.getElementById("users-list"); d.innerHTML="";
-            globalUsers.forEach(u => {
-                d.innerHTML += `<div class="user-card">
-                    <div><b>${u.user}</b> <small>(${u.job||'-'})</small></div>
-                    <div><button style="width:30px; background:#eee;" onclick="editUser('${u.id}')">✏️</button>
-                    <button style="width:30px; background:red; color:white;" onclick="delPUser('${u.id}')">x</button></div>
-                </div>`;
-            });
-        }
-        window.delPUser = async function(id) { if(confirm("حذف؟")) await deleteDoc(doc(db,"users",id)); }
-        window.cancelEditUser = function() { location.reload(); }
-
-        window.toggleLineMgr = function() { document.getElementById("mgr-regions-box").style.display = document.getElementById("perm-linemanager").checked ? "block" : "none"; }
-        window.editProd = function(id) {
-            let p = globalProducts.find(x=>x.id===id);
-            document.getElementById("edit-id").value = id;
-            document.getElementById("np-name").value = p.name;
-            document.getElementById("np-price").value = p.price;
-            document.getElementById("admin-tools").style.display="block";
-            document.getElementById("btn-cancel-prod").style.display="inline-block";
-            window.scrollTo(0,0);
-        }
-        window.cancelEditProd = function() { document.getElementById("edit-id").value = ""; document.getElementById("np-name").value = ""; document.getElementById("btn-cancel-prod").style.display="none"; }
-        window.delP = async function(id) { if(confirm("حذف؟")) await deleteDoc(doc(db,"products",id)); }
-
+        // --- Update Dashboard (FIXED) ---
         window.updateDashboard = function() {
             if(!document.getElementById("page-dashboard")) return;
-            document.getElementById("dash-total-orders").innerText = globalOrders.length;
+            if(document.getElementById("dash-total-sales")) document.getElementById("dash-total-sales").innerText = globalOrders.length;
+            if(document.getElementById("dash-total-orders")) document.getElementById("dash-total-orders").innerText = globalOrders.length;
             
-            let ctx = document.getElementById("chart-reps").getContext('2d');
+            // Fix: Check if canvas exists before drawing
+            const chartCanvas = document.getElementById("chart-reps");
+            if(!chartCanvas) return;
+
+            let ctx = chartCanvas.getContext('2d');
             if(chartRepsInstance) chartRepsInstance.destroy();
             let repData = {}; 
             globalOrders.forEach(o => repData[o.user] = (repData[o.user]||0)+1);
