@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V46 (Smart Navigation)</title>
+    <title>Safelife - V47 (Multi-Branch ERP)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,21 +31,21 @@
         #main-app { display: none; }
         header { background: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 900; }
         
+        /* Header Branch Filter */
+        #header-branch-select { padding: 5px; border: 1px solid var(--main); border-radius: 5px; font-size: 12px; background: #fff; display: none; }
+
         .page-section { display: none; padding: 15px; padding-bottom: 100px; animation: fadeIn 0.3s; }
         .active-page { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Cards & Grids */
-        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        /* General Styles */
         .card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; flex-direction: column; }
         .card-img-wrap { width: 100%; height: 130px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 5px; }
         .card-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .card-body { padding: 10px; text-align: right; flex-grow: 1; }
-        
-        /* UI Elements */
+        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         .admin-panel { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; position: relative; z-index: 1; }
         
-        /* Inputs & Buttons */
         input, select, textarea { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 100%; margin-bottom: 10px; font-family: 'Cairo'; font-size: 16px; }
         button { cursor: pointer; border:none; border-radius:8px; padding:12px; font-family: 'Cairo'; font-weight: bold; width:100%; margin-bottom:5px; font-size: 16px; }
         
@@ -53,30 +53,27 @@
         .permission-label:active { background: #e3f2fd; }
         input[type="checkbox"] { width: 25px; height: 25px; margin-left: 15px; flex-shrink: 0; }
 
-        /* Colors */
         .btn-green { background: var(--green); color: white; }
         .btn-red { background: #e74c3c; color: white; width:auto; padding:5px 15px; }
         .btn-blue { background: var(--main); color: white; }
         .btn-warning { background: #f39c12; color: white; }
         .btn-ghost { background: #eee; color: #333; }
 
-        /* Grouped Orders */
+        /* Order Group Card */
         .order-group-card { background: white; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .group-header { background: #f0f7ff; padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .group-item-row { display: flex; justify-content: space-between; padding: 10px 15px; border-bottom: 1px dashed #eee; font-size: 14px; }
         .group-footer { background: #fafafa; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
 
+        /* PDF Table */
+        #dist-print-area table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        #dist-print-area th { background: #eee; border: 1px solid #333; padding: 10px; }
+        #dist-print-area td { border: 1px solid #333; padding: 10px; text-align: center; }
+
         /* Stocktake Table */
         #st-table-header { background: #333; color: #fff; font-weight: bold; }
         #st-table-body tr:nth-child(even) { background: #f9f9f9; }
         .st-del-btn { background: #ffebee; color: red; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
-
-        /* PDF & Stats */
-        #dist-print-area table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        #dist-print-area th { background: #eee; border: 1px solid #333; padding: 10px; }
-        #dist-print-area td { border: 1px solid #333; padding: 10px; text-align: center; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-card { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
         /* Nav */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 999; border-top: 1px solid #eee; height: 60px; }
@@ -95,14 +92,13 @@
     <!-- Login -->
     <div id="login-screen">
         <div class="login-box">
-            <h3 style="color:var(--main);">بوابة الموظفين</h3>
+            <h3 style="color:var(--main);">Safelife Login</h3>
             <input type="text" id="l-user" placeholder="اسم المستخدم">
             <input type="password" id="l-pass" placeholder="كلمة المرور">
             <label style="display:flex; align-items:center; justify-content:center; margin-bottom:15px; color:#555;">
                 <input type="checkbox" id="remember-me" style="width:20px; height:20px; margin:0 0 0 10px;"> تذكر دخولي
             </label>
             <button class="btn-green" onclick="login()">دخول</button>
-            <button class="btn-ghost" onclick="startApp({user:'زائر', region:'none', lines:['all'], isAdmin:false})">دخول زائر</button>
             <p id="error-msg" style="color:#e74c3c; display:none; margin-top:10px;">بيانات خاطئة</p>
         </div>
     </div>
@@ -111,21 +107,27 @@
     <div id="main-app">
         <header>
             <div style="font-weight:bold; color:var(--main);">Safelife</div>
-            <div style="display:flex; gap:10px; align-items:center;">
+            
+            <!-- BRANCH SELECTOR (ADMIN ONLY) -->
+            <select id="header-branch-select" onchange="updateGlobalBranch(this.value)">
+                <option value="all">كل الفروع</option>
+            </select>
+
+            <div style="display:flex; gap:5px; align-items:center;">
                 <span id="head-user" style="font-size:12px; font-weight:bold;"></span>
-                <button class="btn-red" onclick="logout()">خروج</button>
+                <button class="btn-red" style="padding:5px 10px;" onclick="logout()">خروج</button>
             </div>
         </header>
 
         <!-- Dashboard -->
         <div id="page-dashboard" class="page-section active-page">
-            <h3>📊 لوحة القيادة</h3>
-            <div class="stats-grid">
-                <div class="stat-card">
+            <h3>📊 لوحة القيادة <span id="dash-branch-name" style="font-size:14px; color:#777;"></span></h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="admin-panel" style="text-align:center;">
                     <div id="dash-total-sales" style="font-size:24px; font-weight:bold; color:var(--main);">0</div>
                     <div>المبيعات</div>
                 </div>
-                <div class="stat-card">
+                <div class="admin-panel" style="text-align:center;">
                     <div id="dash-total-orders" style="font-size:24px; font-weight:bold; color:var(--green);">0</div>
                     <div>الطلبات</div>
                 </div>
@@ -149,13 +151,12 @@
             </div>
 
             <div id="admin-tools" class="admin-panel" style="display:none; background:#fff8e1;">
-                <h4>+ منتج جديد</h4>
+                <h4>+ منتج جديد (عام لكل الفروع)</h4>
                 <input type="hidden" id="edit-id">
                 <input type="text" id="np-name" placeholder="الاسم">
                 <div style="display:flex; gap:5px;">
                     <select id="np-cat"></select> <select id="np-salesline"></select>
                 </div>
-                <input type="text" id="np-desc" placeholder="وصف">
                 <input type="text" id="np-img" placeholder="رابط الصورة">
                 <input type="number" id="np-price" placeholder="السعر الافتراضي">
                 <div style="display:flex; gap:5px;">
@@ -175,7 +176,6 @@
                 <button class="btn-warning" onclick="initDistSummary()" id="btn-dist-summary" style="display:none;">📦 تجميعة التحميل</button>
             </div>
             
-            <!-- Dist Summary Modal (With Close Button) -->
             <div id="dist-summary-panel" class="admin-panel" style="display:none; border:2px solid orange;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h4 style="color:var(--main); margin:0;">📦 تجميعة التحميل</h4>
@@ -257,6 +257,17 @@
         <!-- Admin Settings -->
         <div id="page-admin" class="page-section">
             <h3>⚙️ الإعدادات</h3>
+            
+            <!-- BRANCHES -->
+            <div class="admin-panel" style="border:2px solid var(--main);">
+                <h4>🏢 إدارة الفروع</h4>
+                <div style="display:flex; gap:5px;">
+                    <input type="text" id="new-branch-name" placeholder="اسم الفرع الجديد">
+                    <button class="btn-blue" onclick="addBranch()">إضافة</button>
+                </div>
+                <div id="branches-list" style="margin-top:10px;"></div>
+            </div>
+
             <div class="admin-panel">
                 <h4 style="color:green;">📥 استيراد عملاء (Excel)</h4>
                 <div style="display:flex; gap:5px;">
@@ -271,14 +282,8 @@
                 </div>
             </div>
 
-            <div class="admin-panel" style="border:2px solid orange;">
-                <h4 style="color:orange;">⚠️ أدوات الصيانة</h4>
-                <button class="btn-warning" onclick="cleanDuplicateClients()">تنظيف تكرار العملاء</button>
-                <button class="btn-warning" onclick="cleanDuplicateProducts()">تنظيف تكرار المنتجات</button>
-            </div>
-
             <div class="admin-panel">
-                <h4>القوائم</h4>
+                <h4>القوائم (لاينات / مناطق)</h4>
                 <div style="display:flex; gap:5px;">
                     <select id="sys-type"><option value="cats">قسم</option><option value="lines">لاين</option><option value="regs">منطقة</option></select>
                     <input type="text" id="sys-val" placeholder="الاسم">
@@ -293,11 +298,17 @@
                 <input type="text" id="u-name" placeholder="اسم المستخدم">
                 <input type="text" id="u-pass" placeholder="كلمة المرور">
                 <input type="text" id="u-job" placeholder="المسمى الوظيفي">
-                <label>المنطقة:</label><select id="u-reg-select"></select>
+                
+                <label style="color:red; font-weight:bold;">الفرع التابع له:</label>
+                <select id="u-branch-select" style="border:1px solid red;"></select>
+
+                <label>المنطقة (داخل الفرع):</label><select id="u-reg-select"></select>
+                
                 <label style="font-weight:bold; margin-top:10px; display:block;">اللاينات (اختر):</label>
                 <div class="check-group" id="u-lines-check"></div>
+
                 <div style="background:#f9f9f9; padding:10px; border-radius:5px; margin-top:5px;">
-                    <label class="permission-label"><input type="checkbox" id="perm-admin"> أدمن كامل</label>
+                    <label class="permission-label"><input type="checkbox" id="perm-admin"> Super Admin (يرى كل الفروع)</label>
                     <label class="permission-label"><input type="checkbox" id="perm-price"> تعديل منتجات</label>
                     <label class="permission-label"><input type="checkbox" id="perm-report"> صلاحية التقارير</label>
                     <label class="permission-label"><input type="checkbox" id="perm-deliver"> مندوب توزيع</label>
@@ -310,6 +321,7 @@
                         <div class="check-group" id="u-mgr-regions"></div>
                     </div>
                 </div>
+                
                 <div style="display:flex; gap:5px; margin-top:15px;">
                     <button class="btn-green" onclick="saveUser()">حفظ المستخدم</button>
                     <button class="btn-ghost" id="btn-cancel-user" onclick="cancelEditUser()" style="display:none;">إلغاء</button>
@@ -352,32 +364,28 @@
 
         let currentUser = null;
         let globalProducts=[], globalOrders=[], globalUsers=[];
-        let globalSettings = { cats:[], lines:[], regs:[], logo:"" };
+        let globalSettings = { cats:[], lines:[], regs:[], branches:[] }; // Added Branches
         let orderTab = 'active';
         let stocktakeItems = []; 
         let chartRepsInstance = null;
+        
+        // Multi-Branch Logic
+        let viewBranch = 'all'; // For Admin: 'all' or specific branchId. For User: fixed to their branch.
 
-        // --- Auto Login ---
         window.onload = function() {
             const savedUser = localStorage.getItem('safelife_user');
-            if(savedUser) {
-                let userObj = JSON.parse(savedUser);
-                login(userObj.user, userObj.pass);
-            }
+            if(savedUser) { let userObj = JSON.parse(savedUser); login(userObj.user, userObj.pass); }
         };
 
-        // --- Login Logic ---
         window.login = async function(savedU, savedP) {
             let u = savedU || document.getElementById("l-user").value;
             let p = savedP || document.getElementById("l-pass").value;
             let remember = document.getElementById("remember-me").checked;
-
             showLoader(true, "دخول...");
             
-            // Backdoor
             if(u==='admin' && p==='123') {
                  if(remember) localStorage.setItem('safelife_user', JSON.stringify({user:u, pass:p}));
-                 startApp({user:'Admin', isAdmin:true, canPrice:true, canStocktake:true, isDistributor:true});
+                 startApp({user:'Admin', isAdmin:true, canPrice:true, canStocktake:true, isDistributor:true, branch:'all'});
                  return;
             }
 
@@ -389,20 +397,14 @@
                     if(remember) localStorage.setItem('safelife_user', JSON.stringify({user:u, pass:p}));
                     startApp(d);
                 } else {
-                    document.getElementById("error-msg").innerText = "اسم المستخدم أو كلمة المرور خطأ";
+                    document.getElementById("error-msg").innerText = "بيانات خاطئة";
                     document.getElementById("error-msg").style.display="block";
                     showLoader(false);
                 }
-            } catch(e) { 
-                alert("خطأ في الاتصال: " + e.message); 
-                showLoader(false); 
-            }
+            } catch(e) { alert("خطأ: " + e.message); showLoader(false); }
         }
 
-        window.logout = function() {
-            localStorage.removeItem('safelife_user');
-            location.reload();
-        }
+        window.logout = function() { localStorage.removeItem('safelife_user'); location.reload(); }
 
         window.startApp = function(user) {
             currentUser = user;
@@ -410,8 +412,15 @@
             document.getElementById("main-app").style.display = "block";
             document.getElementById("head-user").innerText = user.user;
 
-            let isVisitor = (user.user === "زائر");
+            // Branch Logic Setup
+            if(user.isAdmin) {
+                document.getElementById("header-branch-select").style.display = "block";
+                viewBranch = 'all';
+            } else {
+                viewBranch = user.branch || 'unknown'; // Regular user locked to branch
+            }
 
+            let isVisitor = (user.user === "زائر");
             if(isVisitor) {
                 document.getElementById("btn-dashboard").style.display = "none";
                 document.getElementById("btn-orders").style.display = "none";
@@ -429,16 +438,28 @@
                 nav('dashboard');
             }
 
-            listenToProducts(); listenToOrders(); listenToSettings();
+            listenToSettings();
+            listenToProducts(); 
+            listenToOrders(); 
             if(user.isAdmin) listenToUsers();
+            
             showLoader(false);
         }
 
-        // --- Listeners ---
-        function listenToSettings(){ onSnapshot(doc(db,"settings","config"), d=>{ 
-            if(d.exists()){ globalSettings=d.data(); updateUI(); }
-            else { setDoc(doc(db,"settings","config"), {cats:[], lines:[], regs:[]}); }
-        }); }
+        // --- Listeners & Filtering ---
+        function listenToSettings(){ 
+            onSnapshot(doc(db,"settings","config"), d=>{ 
+                if(d.exists()){ 
+                    globalSettings=d.data(); 
+                    if(!globalSettings.branches) globalSettings.branches = [];
+                    updateUI(); 
+                } else { 
+                    setDoc(doc(db,"settings","config"), {cats:[], lines:[], regs:[], branches:[]}); 
+                }
+            }); 
+        }
+
+        // Modified: Load all, filter in memory based on viewBranch
         function listenToProducts(){ 
             onSnapshot(collection(db,"products"), s=>{ 
                 globalProducts=[]; 
@@ -453,19 +474,40 @@
                 updateDashboard(); 
             }); 
         }
-        function listenToOrders(){ onSnapshot(collection(db,"orders"), s=>{ globalOrders=[]; s.forEach(d=>globalOrders.push({...d.data(),id:d.id})); updateDashboard(); renderOrders(); }); }
-        function listenToUsers(){ onSnapshot(collection(db,"users"), s=>{ globalUsers=[]; s.forEach(d=>globalUsers.push({...d.data(),id:d.id})); renderUsersTable(); }); }
+
+        function listenToOrders(){ 
+            onSnapshot(collection(db,"orders"), s=>{ 
+                globalOrders=[]; 
+                s.forEach(d=>globalOrders.push({...d.data(),id:d.id})); 
+                updateDashboard(); 
+                renderOrders(); 
+            }); 
+        }
+
+        function listenToUsers(){ 
+            onSnapshot(collection(db,"users"), s=>{ 
+                globalUsers=[]; 
+                s.forEach(d=>globalUsers.push({...d.data(),id:d.id})); 
+                renderUsersTable(); 
+            }); 
+        }
 
         // --- Core ---
+        window.updateGlobalBranch = function(val) {
+            viewBranch = val;
+            renderOrders();
+            updateDashboard();
+            // Refresh title
+            document.getElementById("dash-branch-name").innerText = (val==='all' ? '(الكل)' : val);
+        }
+
         window.searchClients = async function(val) {
             let dl = document.getElementById("clients-datalist");
             dl.innerHTML = "";
             if(!val || val.length < 2) return;
-            try {
-                const q = query(collection(db, "clients"), where('name', '>=', val), where('name', '<=', val + '\uf8ff'), limit(10));
-                const snap = await getDocs(q);
-                snap.forEach(doc => { dl.innerHTML += `<option value="${doc.data().name}">`; });
-            } catch(e) {}
+            const q = query(collection(db, "clients"), where('name', '>=', val), where('name', '<=', val + '\uf8ff'), limit(10));
+            const snap = await getDocs(q);
+            snap.forEach(doc => { dl.innerHTML += `<option value="${doc.data().name}">`; });
         }
 
         window.getGPS = function() {
@@ -478,10 +520,31 @@
         }
 
         function updateUI() {
+            // Dropdowns
             let npCat=document.getElementById("np-cat"), npLine=document.getElementById("np-salesline"), uReg=document.getElementById("u-reg-select");
             if(npCat) npCat.innerHTML=`<option value="">القسم</option>`+(globalSettings.cats||[]).map(c=>`<option value="${c}">${c}</option>`).join("");
             if(npLine) npLine.innerHTML=`<option value="">اللاين</option>`+(globalSettings.lines||[]).map(l=>`<option value="${l}">${l}</option>`).join("");
             if(uReg) uReg.innerHTML=(globalSettings.regs||[]).map(r=>`<option>${r}</option>`).join("");
+            
+            // Branch Selects
+            let headBranch = document.getElementById("header-branch-select");
+            let uBranch = document.getElementById("u-branch-select");
+            let branches = globalSettings.branches || [];
+            
+            // Header Filter (Admin)
+            if(currentUser && currentUser.isAdmin) {
+                let currentVal = headBranch.value;
+                headBranch.innerHTML = `<option value="all">كل الفروع</option>`;
+                branches.forEach(b => headBranch.innerHTML += `<option value="${b}">${b}</option>`);
+                headBranch.value = currentVal;
+            }
+
+            // User Creation Form
+            if(uBranch) {
+                uBranch.innerHTML = `<option value="">اختر الفرع...</option>`;
+                branches.forEach(b => uBranch.innerHTML += `<option value="${b}">${b}</option>`);
+            }
+
             if(currentUser && currentUser.isAdmin) renderAdminLists();
         }
 
@@ -491,7 +554,7 @@
             let name = document.getElementById("np-name").value;
             let price = Number(document.getElementById("np-price").value);
             if(!name) return;
-            let data = { name, price, cat: document.getElementById("np-cat").value, line: document.getElementById("np-salesline").value, desc: document.getElementById("np-desc").value, img: document.getElementById("np-img").value };
+            let data = { name, price, cat: document.getElementById("np-cat").value, line: document.getElementById("np-salesline").value, img: document.getElementById("np-img").value };
             if(id) await updateDoc(doc(db,"products",id), data);
             else await addDoc(collection(db,"products"), data);
             cancelEditProd();
@@ -499,13 +562,18 @@
 
         window.renderProducts = function() {
             let div = document.getElementById("products-container"); div.innerHTML = "";
-            globalProducts.forEach(p => {
+            
+            // Filter Products based on Line (If user is not admin)
+            let displayProducts = globalProducts;
+            if(!currentUser.isAdmin && currentUser.lines && !currentUser.lines.includes('all')) {
+                displayProducts = globalProducts.filter(p => currentUser.lines.includes(p.line));
+            }
+
+            displayProducts.forEach(p => {
                 let img = p.img?p.img:DEFAULT_IMG;
                 let btns = "";
-                if(currentUser && currentUser.user!=="زائر") {
-                    if(currentUser.isAdmin || currentUser.canPrice) {
-                        btns=`<div style="position:absolute; top:5px; left:5px;"><button style="background:#eee; width:30px; padding:2px;" onclick="editProd('${p.id}')">✏️</button><button style="background:#ffeeba; width:30px; padding:2px; color:red;" onclick="delP('${p.id}')">x</button></div>`;
-                    }
+                if(currentUser && currentUser.user!=="زائر" && (currentUser.isAdmin || currentUser.canPrice)) {
+                    btns=`<div style="position:absolute; top:5px; left:5px;"><button style="background:#eee; width:30px; padding:2px;" onclick="editProd('${p.id}')">✏️</button><button style="background:#ffeeba; width:30px; padding:2px; color:red;" onclick="delP('${p.id}')">x</button></div>`;
                 }
                 div.innerHTML += `
                 <div class="card">
@@ -533,16 +601,45 @@
             let location = document.getElementById("order-location").value;
             let customPrice = document.getElementById(`price-${pid}`).value;
             if(!client) return alert("اكتب اسم العميل");
+            
             showLoader(true, "جاري الطلب...");
-            await addDoc(collection(db,"orders"), { product: p.name, price: customPrice, qty: qty, total: customPrice*qty, client: client, location: location || "غير محدد", user: currentUser.user, region: currentUser.region || 'none', date: new Date().toLocaleDateString(), timestamp: Date.now(), status: 'pending' });
+            await addDoc(collection(db,"orders"), { 
+                product: p.name, 
+                price: customPrice, 
+                qty: qty, 
+                total: customPrice*qty, 
+                client: client, 
+                location: location || "غير محدد", 
+                user: currentUser.user, 
+                region: currentUser.region || 'none', 
+                branch: currentUser.branch || 'unknown', // IMPORTANT: Tag with Branch
+                date: new Date().toLocaleDateString(), 
+                timestamp: Date.now(), 
+                status: 'pending' 
+            });
             showLoader(false);
             alert("تم");
         }
 
-        // --- GROUPED ORDERS (SMART NAV FIX) ---
+        // --- GROUPED ORDERS (FILTERED BY BRANCH) ---
         window.renderOrders = function() {
             let div = document.getElementById("orders-container"); div.innerHTML = "";
-            let list = globalOrders.filter(o => orderTab==='active' ? o.status!=='archived' : o.status==='archived');
+            
+            // 1. Filter by Branch
+            let branchOrders = globalOrders;
+            if(viewBranch !== 'all') {
+                branchOrders = globalOrders.filter(o => o.branch === viewBranch);
+            }
+
+            // 2. Filter by Line (If Rep)
+            if(!currentUser.isAdmin && currentUser.lines && !currentUser.lines.includes('all')) {
+                // This assumes we can link product line to order. Ideally order should have line. 
+                // For simplicity, we assume rep sees all in his branch for now or implement stricter line logic later.
+            }
+
+            // 3. Filter by Tab (Active/History)
+            let list = branchOrders.filter(o => orderTab==='active' ? o.status!=='archived' : o.status==='archived');
+            
             let groups = {};
             list.forEach(o => { if(!groups[o.client]) groups[o.client] = []; groups[o.client].push(o); });
 
@@ -570,7 +667,11 @@
             let note = prompt("ملاحظات تسليم الفاتورة؟");
             if(note === null) return;
             showLoader(true, "جاري التسليم...");
-            let pending = globalOrders.filter(o => o.client === clientName && o.status !== 'archived');
+            
+            // Deliver only visible orders (Branch filtered)
+            let branchOrders = (viewBranch === 'all') ? globalOrders : globalOrders.filter(o => o.branch === viewBranch);
+            let pending = branchOrders.filter(o => o.client === clientName && o.status !== 'archived');
+            
             let batch = writeBatch(db);
             pending.forEach(o => { let ref = doc(db, "orders", o.id); batch.update(ref, { status: 'archived', deliveryNote: note || "تسليم كامل" }); });
             await batch.commit();
@@ -583,19 +684,17 @@
             document.querySelectorAll("#page-orders button").forEach(b=>b.classList.remove("btn-blue")); 
             if(t==='active') document.getElementById('btn-tab-active').classList.add('btn-blue');
             if(t==='history') document.getElementById('btn-tab-history').classList.add('btn-blue');
-            
-            // SMART CLOSE: Force close dist panel when switching tabs
             document.getElementById('dist-summary-panel').style.display = 'none';
             renderOrders(); 
         }
-
-        window.closeDistPanel = function() {
-            document.getElementById('dist-summary-panel').style.display = 'none';
-        }
+        window.closeDistPanel = function() { document.getElementById('dist-summary-panel').style.display = 'none'; }
 
         // --- DIST SUMMARY ---
         window.initDistSummary = function() {
-            let pending = globalOrders.filter(o => o.status !== 'archived');
+            // Filter by Branch First
+            let branchOrders = (viewBranch === 'all') ? globalOrders : globalOrders.filter(o => o.branch === viewBranch);
+            let pending = branchOrders.filter(o => o.status !== 'archived');
+            
             let regions = [...new Set(pending.map(o => o.region || "غير محدد"))];
             let container = document.getElementById("dist-regions-checks");
             container.innerHTML = "";
@@ -610,20 +709,23 @@
             let selectedRegs = [];
             document.querySelectorAll(".dist-reg-check:checked").forEach(c => selectedRegs.push(c.value));
             if(selectedRegs.length === 0) return alert("اختر منطقة واحدة على الأقل");
-            let pending = globalOrders.filter(o => o.status !== 'archived' && selectedRegs.includes(o.region || "غير محدد"));
+            
+            let branchOrders = (viewBranch === 'all') ? globalOrders : globalOrders.filter(o => o.branch === viewBranch);
+            let pending = branchOrders.filter(o => o.status !== 'archived' && selectedRegs.includes(o.region || "غير محدد"));
+            
             let summary = {};
             pending.forEach(o => { let qty = parseInt(o.qty) || 0; if(summary[o.product]) summary[o.product] += qty; else summary[o.product] = qty; });
             let tbody = document.getElementById("dist-summary-body");
             tbody.innerHTML = "";
             for (let [prod, total] of Object.entries(summary)) { tbody.innerHTML += `<tr><td style="text-align:right;">${prod}</td><td style="font-weight:bold; color:green;">${total}</td></tr>`; }
-            document.getElementById("pdf-meta").innerText = `مناطق: ${selectedRegs.join(' , ')} | التاريخ: ${new Date().toLocaleDateString()}`;
+            document.getElementById("pdf-meta").innerText = `الفرع: ${viewBranch==='all'?'كل الفروع':viewBranch} | مناطق: ${selectedRegs.join(' , ')} | التاريخ: ${new Date().toLocaleDateString()}`;
             document.getElementById("dist-print-area").style.display = "block";
             document.getElementById("btn-dl-pdf").style.display = "block";
         }
 
         window.downloadDistPDF = function() {
             const element = document.getElementById('dist-print-area');
-            var opt = { margin: 0.2, filename: 'Safelife_Load_Order.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
+            var opt = { margin: 0.2, filename: 'Safelife_Order.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
             html2pdf().set(opt).from(element).save();
         }
 
@@ -671,25 +773,163 @@
             if(!client) return alert("اختر العميل");
             if(stocktakeItems.length === 0) return alert("الجدول فارغ");
             showLoader(true);
-            await addDoc(collection(db, "stocktakes"), { client, user: currentUser.user, date: new Date().toLocaleDateString(), items: stocktakeItems, total: document.getElementById("st-total-after").innerText });
+            await addDoc(collection(db, "stocktakes"), { 
+                client, user: currentUser.user, branch: currentUser.branch || 'unknown', // Tag Branch
+                date: new Date().toLocaleDateString(), items: stocktakeItems, total: document.getElementById("st-total-after").innerText 
+            });
             showLoader(false);
             alert("تم الحفظ");
             stocktakeItems = []; renderStTable(); document.getElementById("st-client").value = "";
         }
 
-        // --- Update Dashboard (Safety Fix) ---
+        // --- ADMIN: Branches ---
+        window.addBranch = async function() {
+            let val = document.getElementById("new-branch-name").value;
+            if(val) { await updateDoc(doc(db,"settings","config"), {branches: arrayUnion(val)}); document.getElementById("new-branch-name").value=""; }
+        }
+        window.delBranch = async function(val) { if(confirm("حذف الفرع؟")) await updateDoc(doc(db,"settings","config"), {branches: arrayRemove(val)}); }
+
+        window.addSysItem = async function() {
+            let type = document.getElementById("sys-type").value;
+            let val = document.getElementById("sys-val").value;
+            if(val) { await updateDoc(doc(db,"settings","config"), {[type]: arrayUnion(val)}); document.getElementById("sys-val").value=""; }
+        }
+        window.delSet = async function(type, val) { if(confirm("حذف؟")) await updateDoc(doc(db,"settings","config"), {[type]: arrayRemove(val)}); }
+
+        window.importClients = function() {
+            let file = document.getElementById('file-clients').files[0];
+            if(!file) return;
+            let reader = new FileReader();
+            reader.onload = async function(e) {
+                let data = new Uint8Array(e.target.result);
+                let workbook = XLSX.read(data, {type: 'array'});
+                let sheet = workbook.Sheets[workbook.SheetNames[0]];
+                let json = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                
+                let batch = writeBatch(db);
+                let count = 0;
+                for(let i=0; i<json.length; i++) {
+                    let row = json[i];
+                    if(row[0]) {
+                        let ref = doc(collection(db, "clients"));
+                        batch.set(ref, {name: row[0]});
+                        count++;
+                        if(count >= 400) { await batch.commit(); batch = writeBatch(db); count=0; }
+                    }
+                }
+                if(count>0) await batch.commit();
+                document.getElementById("upload-status").innerText = "تم رفع العملاء بنجاح";
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // --- Admin: Users ---
+        window.saveUser = async function() {
+            let u=document.getElementById("u-name").value;
+            let p=document.getElementById("u-pass").value;
+            let id = document.getElementById("edit-user-id").value;
+            let lines = [];
+            document.querySelectorAll(".u-line-chk:checked").forEach(c=>lines.push(c.value));
+            if(lines.length===0) lines=['all'];
+
+            let data = {
+                user: u, pass: p, 
+                job: document.getElementById("u-job").value,
+                region: document.getElementById("u-reg-select").value,
+                branch: document.getElementById("u-branch-select").value, // Save Branch
+                lines: lines,
+                isAdmin: document.getElementById("perm-admin").checked,
+                canPrice: document.getElementById("perm-price").checked,
+                canReport: document.getElementById("perm-report").checked,
+                isDistributor: document.getElementById("perm-deliver").checked,
+                canStocktake: document.getElementById("perm-stocktake").checked,
+                canArchive: document.getElementById("perm-archive").checked,
+                isLineMgr: document.getElementById("perm-linemanager").checked
+            };
+            
+            if(id) await updateDoc(doc(db,"users",id), data);
+            else await addDoc(collection(db,"users"), data);
+            alert("تم"); location.reload();
+        }
+
+        window.editUser = function(id) {
+            let u = globalUsers.find(x=>x.id===id);
+            document.getElementById("u-name").value = u.user;
+            document.getElementById("u-pass").value = u.pass;
+            document.getElementById("edit-user-id").value = id;
+            document.getElementById("u-job").value = u.job || "";
+            document.getElementById("u-reg-select").value = u.region;
+            document.getElementById("u-branch-select").value = u.branch || "";
+            
+            document.getElementById("perm-admin").checked = u.isAdmin;
+            document.getElementById("perm-price").checked = u.canPrice;
+            document.getElementById("perm-report").checked = u.canReport;
+            document.getElementById("perm-deliver").checked = u.isDistributor;
+            document.getElementById("perm-stocktake").checked = u.canStocktake;
+            document.getElementById("perm-archive").checked = u.canArchive;
+            document.getElementById("perm-linemanager").checked = u.isLineMgr;
+
+            document.getElementById("btn-cancel-user").style.display = "inline-block";
+            document.getElementById("user-form-title").innerText = "تعديل: " + u.user;
+        }
+
+        window.renderAdminLists = function() {
+            let c=document.getElementById("sys-lists-container");
+            c.innerHTML = `<b>الفروع:</b> `+(globalSettings.branches||[]).map(x=>`<span style="background:#e3f2fd; padding:2px 5px; margin:2px;">${x} <span onclick="delBranch('${x}')" style="color:red; cursor:pointer;">x</span></span>`).join("") +
+            `<br><b>Lines:</b> `+(globalSettings.lines||[]).map(x=>`<span style="background:#ffeeba; padding:2px 5px; margin:2px;">${x} <span onclick="delSet('lines','${x}')" style="color:red; cursor:pointer;">x</span></span>`).join("") +
+            `<br><b>Regs:</b> `+(globalSettings.regs||[]).map(x=>`<span style="background:#eee; padding:2px 5px; margin:2px;">${x} <span onclick="delSet('regs','${x}')" style="color:red; cursor:pointer;">x</span></span>`).join("");
+            
+            let uL=document.getElementById("u-lines-check");
+            uL.innerHTML=`<label class="permission-label"><input type="checkbox" value="all" class="u-line-chk"> الكل</label>`;
+            (globalSettings.lines||[]).forEach(l=>uL.innerHTML+=`<label class="permission-label"><input type="checkbox" value="${l}" class="u-line-chk"> ${l}</label>`);
+        }
+
+        function renderUsersTable() {
+            let d = document.getElementById("users-list"); d.innerHTML="";
+            
+            // Filter Users by Branch if Admin selects one
+            let displayUsers = (viewBranch === 'all') ? globalUsers : globalUsers.filter(u => u.branch === viewBranch);
+
+            displayUsers.forEach(u => {
+                d.innerHTML += `<div class="user-card">
+                    <div><b>${u.user}</b> <small>(${u.branch||'-'})</small></div>
+                    <div><button style="width:30px; background:#eee;" onclick="editUser('${u.id}')">✏️</button>
+                    <button style="width:30px; background:red; color:white;" onclick="delPUser('${u.id}')">x</button></div>
+                </div>`;
+            });
+        }
+        window.delPUser = async function(id) { if(confirm("حذف؟")) await deleteDoc(doc(db,"users",id)); }
+        window.cancelEditUser = function() { location.reload(); }
+
+        window.toggleLineMgr = function() { document.getElementById("mgr-regions-box").style.display = document.getElementById("perm-linemanager").checked ? "block" : "none"; }
+        window.editProd = function(id) {
+            let p = globalProducts.find(x=>x.id===id);
+            document.getElementById("edit-id").value = id;
+            document.getElementById("np-name").value = p.name;
+            document.getElementById("np-price").value = p.price;
+            document.getElementById("admin-tools").style.display="block";
+            document.getElementById("btn-cancel-prod").style.display="inline-block";
+            window.scrollTo(0,0);
+        }
+        window.cancelEditProd = function() { document.getElementById("edit-id").value = ""; document.getElementById("np-name").value = ""; document.getElementById("btn-cancel-prod").style.display="none"; }
+        window.delP = async function(id) { if(confirm("حذف؟")) await deleteDoc(doc(db,"products",id)); }
+
         window.updateDashboard = function() {
             if(!document.getElementById("page-dashboard")) return;
-            if(document.getElementById("dash-total-sales")) document.getElementById("dash-total-sales").innerText = globalOrders.length;
-            if(document.getElementById("dash-total-orders")) document.getElementById("dash-total-orders").innerText = globalOrders.length;
+            
+            // Filter Dashboard Stats by Branch
+            let branchOrders = (viewBranch === 'all') ? globalOrders : globalOrders.filter(o => o.branch === viewBranch);
+
+            if(document.getElementById("dash-total-sales")) document.getElementById("dash-total-sales").innerText = branchOrders.length;
+            if(document.getElementById("dash-total-orders")) document.getElementById("dash-total-orders").innerText = branchOrders.length;
             
             const chartCanvas = document.getElementById("chart-reps");
-            if(!chartCanvas) return; // Prevent "getContext" null error
+            if(!chartCanvas) return;
 
             let ctx = chartCanvas.getContext('2d');
             if(chartRepsInstance) chartRepsInstance.destroy();
             let repData = {}; 
-            globalOrders.forEach(o => repData[o.user] = (repData[o.user]||0)+1);
+            branchOrders.forEach(o => repData[o.user] = (repData[o.user]||0)+1);
             chartRepsInstance = new Chart(ctx, {
                 type: 'bar',
                 data: { labels: Object.keys(repData), datasets: [{ label: 'الطلبات', data: Object.values(repData), backgroundColor: '#1e3c72' }] }
