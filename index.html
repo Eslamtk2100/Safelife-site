@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e3c72">
-    <title>Safelife - V40 (Distribution & Privacy)</title>
+    <title>Safelife - V41 (Ultimate Grouped)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,10 +66,15 @@
         .btn-warning { background: #f39c12; color: white; }
         .btn-ghost { background: #eee; color: #333; }
 
-        /* Order & User Cards */
-        .user-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .order-card { background: white; border-right: 4px solid var(--main); padding: 10px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        /* Order Group Card (Invoice Style) */
+        .order-group-card { background: white; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .group-header { background: #f0f7ff; padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .group-items { padding: 0; }
+        .group-item-row { display: flex; justify-content: space-between; padding: 10px 15px; border-bottom: 1px dashed #eee; font-size: 14px; }
+        .group-footer { background: #fafafa; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+
         .price-input { border: 1px solid #f39c12; background: #fffdf5; font-weight: bold; color: #d35400; text-align: center; width: 80px !important; display: inline-block; padding: 5px; margin: 0; }
+        .user-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
 
         /* Nav */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 999; border-top: 1px solid #eee; height: 60px; }
@@ -93,15 +98,11 @@
     <div id="login-screen">
         <div class="login-box">
             <h3 style="color:var(--main);">بوابة الموظفين</h3>
-            <!-- Cleaned Placeholders -->
             <input type="text" id="l-user" placeholder="اسم المستخدم">
             <input type="password" id="l-pass" placeholder="كلمة المرور">
-            
-            <!-- Remember Me -->
             <label style="display:flex; align-items:center; justify-content:center; margin-bottom:15px; color:#555;">
                 <input type="checkbox" id="remember-me" style="width:20px; height:20px; margin:0 0 0 10px;"> تذكر دخولي
             </label>
-
             <button class="btn-green" onclick="login()">دخول</button>
             <button class="btn-ghost" onclick="startApp({user:'زائر', region:'none', lines:['all'], isAdmin:false})">دخول زائر</button>
             <p id="error-msg" style="color:#e74c3c; display:none; margin-top:10px;">بيانات خاطئة</p>
@@ -143,14 +144,12 @@
                 <label style="font-weight:bold;">العميل:</label>
                 <input type="text" id="current-client" list="clients-datalist" placeholder="اكتب للبحث..." oninput="searchClients(this.value)">
                 <datalist id="clients-datalist"></datalist>
-                
                 <div style="display:flex; align-items:center; gap:5px; margin-top:5px;">
                     <input type="text" id="order-location" placeholder="العنوان / اللوكيشن" style="margin:0;">
                     <button class="btn-ghost" style="width:50px; margin:0;" onclick="getGPS()">📍</button>
                 </div>
             </div>
 
-            <!-- Admin Add Product -->
             <div id="admin-tools" class="admin-panel" style="display:none; background:#fff8e1;">
                 <h4>+ منتج جديد</h4>
                 <input type="hidden" id="edit-id">
@@ -170,16 +169,15 @@
             <div id="products-container" class="grid-container"></div>
         </div>
 
-        <!-- Orders -->
+        <!-- Orders (GROUPED) -->
         <div id="page-orders" class="page-section">
             <div style="display:flex; gap:5px; margin-bottom:10px;">
                 <button class="btn-blue" onclick="setOrderTab('active')">الطلبات الحالية</button>
                 <button class="btn-ghost" onclick="setOrderTab('history')" id="btn-history-tab">الأرشيف</button>
-                <!-- NEW: Distribution Button -->
                 <button class="btn-warning" onclick="showDistSummary()" id="btn-dist-summary" style="display:none;">📦 تجميعة التحميل</button>
             </div>
             
-            <!-- Distribution Summary Panel -->
+            <!-- Summary Modal -->
             <div id="dist-summary-panel" class="admin-panel" style="display:none; border:2px solid orange;">
                 <h4>📦 تجميعة المخزن (المطلوب تحميله)</h4>
                 <table style="width:100%;">
@@ -339,7 +337,6 @@
 
             showLoader(true, "دخول...");
             
-            // Backdoor
             if(u==='admin' && p==='123') {
                  if(remember) localStorage.setItem('safelife_user', JSON.stringify({user:u, pass:p}));
                  startApp({user:'Admin', isAdmin:true, canPrice:true, canStocktake:true, isDistributor:true});
@@ -373,23 +370,19 @@
 
             let isVisitor = (user.user === "زائر");
 
-            // --- VISITOR RESTRICTIONS (LOGIC FIX) ---
             if(isVisitor) {
-                // Hide ALL Nav Buttons except Products
                 document.getElementById("btn-dashboard").style.display = "none";
                 document.getElementById("btn-orders").style.display = "none";
                 document.getElementById("btn-stocktake").style.display = "none";
                 document.getElementById("btn-admin").style.display = "none";
-                nav('products'); // Go straight to products
+                nav('products');
             } else {
-                // Normal User logic
                 document.getElementById("btn-admin").style.display = user.isAdmin ? "flex" : "none";
                 document.getElementById("admin-tools").style.display = (user.isAdmin || user.canPrice) ? "block" : "none";
                 let canStocktake = user.isAdmin || user.canStocktake;
                 document.getElementById("btn-stocktake").style.display = canStocktake ? "flex" : "none";
                 document.getElementById("btn-orders").style.display = "flex";
                 
-                // Show Distribution Button if authorized
                 let isDist = user.isAdmin || user.isDistributor;
                 document.getElementById("btn-dist-summary").style.display = isDist ? "block" : "none";
                 
@@ -517,46 +510,89 @@
             alert("تم");
         }
 
-        // --- Orders & DISTRIBUTION AGGREGATION ---
+        // --- GROUPED ORDERS LOGIC ---
         window.renderOrders = function() {
             let div = document.getElementById("orders-container"); div.innerHTML = "";
             let list = globalOrders.filter(o => orderTab==='active' ? o.status!=='archived' : o.status==='archived');
-            list.sort((a,b) => b.timestamp - a.timestamp);
-
+            
+            // Group by Client
+            let groups = {};
             list.forEach(o => {
-                let actionBtn = "";
-                if(o.status !== 'archived') {
-                    actionBtn = `<button class="btn-green" style="width:auto; padding:5px 10px; font-size:12px;" onclick="deliverOrder('${o.id}')">تسليم 🚚</button>`;
-                } else {
-                    actionBtn = `<small style="color:red;">${o.deliveryNote || "تم التسليم"}</small>`;
-                }
-                div.innerHTML += `
-                <div class="order-card">
-                    <div style="display:flex; justify-content:space-between;">
-                        <b>${o.client}</b> <small>${o.date}</small>
+                if(!groups[o.client]) groups[o.client] = [];
+                groups[o.client].push(o);
+            });
+
+            // Render Groups
+            for(let clientName in groups) {
+                let items = groups[clientName];
+                let firstOrder = items[0];
+                let totalAmount = items.reduce((acc, curr) => acc + parseFloat(curr.total), 0);
+                
+                let rowsHTML = items.map(o => `
+                    <div class="group-item-row">
+                        <div>${o.product} (${o.qty} x ${o.price})</div>
+                        <div style="font-weight:bold;">${o.total}</div>
                     </div>
-                    <div style="font-size:11px; color:#666;">📍 ${o.location}</div>
-                    <hr style="margin:5px 0; border:0; border-top:1px dashed #eee;">
-                    <div>${o.product} (${o.qty} x ${o.price}) = <b style="color:green;">${o.total}</b></div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
-                        <small style="color:#aaa;">${o.user}</small>
+                `).join('');
+
+                let actionBtn = "";
+                if(orderTab === 'active') {
+                    // Deliver ALL items for this client
+                    actionBtn = `<button class="btn-green" style="width:auto; padding:8px 15px;" onclick="deliverGroup('${clientName}')">تسليم الفاتورة 🚚</button>`;
+                } else {
+                    actionBtn = `<small style="color:red;">${firstOrder.deliveryNote || "أرشيف"}</small>`;
+                }
+
+                div.innerHTML += `
+                <div class="order-group-card">
+                    <div class="group-header">
+                        <div style="font-weight:bold; font-size:16px;">${clientName}</div>
+                        <div style="font-size:12px; color:#555;">${firstOrder.date} | ${firstOrder.user}</div>
+                    </div>
+                    <div style="background:#fffcf5; padding:5px 12px; font-size:12px; border-bottom:1px solid #eee;">📍 ${firstOrder.location}</div>
+                    <div class="group-items">
+                        ${rowsHTML}
+                    </div>
+                    <div class="group-footer">
+                        <div style="font-weight:bold; font-size:18px; color:green;">الإجمالي: ${totalAmount}</div>
                         ${actionBtn}
                     </div>
                 </div>`;
-            });
+            }
+
+            if(list.length === 0) div.innerHTML = "<div style='text-align:center; padding:20px; color:#777;'>لا توجد طلبات</div>";
         }
 
-        // NEW: Show Aggregated Summary for Distributors
+        // Deliver all items for a specific client
+        window.deliverGroup = async function(clientName) {
+            let note = prompt("ملاحظات تسليم الفاتورة؟ (اترك فارغاً للتسليم الكامل)");
+            if(note === null) return;
+
+            showLoader(true, "جاري التسليم...");
+            
+            // Find all pending orders for this client
+            let pending = globalOrders.filter(o => o.client === clientName && o.status !== 'archived');
+            
+            // Batch update using Promises
+            let batch = writeBatch(db);
+            pending.forEach(o => {
+                let ref = doc(db, "orders", o.id);
+                batch.update(ref, { status: 'archived', deliveryNote: note || "تسليم كامل" });
+            });
+
+            await batch.commit();
+            showLoader(false);
+            alert("تم تسليم الفاتورة بالكامل");
+        }
+
         window.showDistSummary = function() {
             let pendingOrders = globalOrders.filter(o => o.status !== 'archived');
             let summary = {};
-            
             pendingOrders.forEach(o => {
                 let qty = parseInt(o.qty) || 0;
                 if(summary[o.product]) summary[o.product] += qty;
                 else summary[o.product] = qty;
             });
-
             let tbody = document.getElementById("dist-summary-body");
             tbody.innerHTML = "";
             for (let [prod, total] of Object.entries(summary)) {
@@ -566,11 +602,6 @@
             window.scrollTo(0,0);
         }
 
-        window.deliverOrder = async function(id) {
-            let note = prompt("ملاحظات التسليم؟");
-            if(note === null) return;
-            await updateDoc(doc(db,"orders",id), {status:'archived', deliveryNote: note || "تسليم كامل"});
-        }
         window.setOrderTab = function(t){ orderTab=t; document.querySelectorAll("#page-orders button").forEach(b=>b.classList.remove("btn-blue")); event.target.classList.add("btn-blue"); renderOrders(); }
 
         // --- Stocktake ---
